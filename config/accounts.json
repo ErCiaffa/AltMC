@@ -1,0 +1,23 @@
+{
+  "accounts": [
+    {
+      "id": "acc_2",
+      "label": "ZinghiriSlave",
+      "username": "ZinghiriSlave",
+      "auth": "offline",
+      "color": "#00ff88",
+      "avatar": "Z",
+      "loginPassword": "Zingaro92"
+    }
+  ],
+  "servers": [
+    {
+      "id": "srv_1773277340044",
+      "label": "ArenaCraft",
+      "host": "mc.arenacraft.it",
+      "port": 25565,
+      "version": "1.21.8",
+      "brand": "vanilla"
+    }
+  ]
+}
