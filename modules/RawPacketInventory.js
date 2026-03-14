@@ -107,6 +107,7 @@ class RawPacketInventory extends EventEmitter {
     this._pktIdSetSlot = null;
     this._pktIdOpenWindow = null;
     this._knownPktIds = new Set();
+    this._lastStateId = -1;
   }
 
   attach(client) {
@@ -308,6 +309,10 @@ class RawPacketInventory extends EventEmitter {
   // ── KEY FIX: _onWindowItemsParsed handles itemId/itemCount correctly ──
   _onWindowItemsParsed(data) {
     if (!data) return;
+    const stateId = Number(data.stateId ?? -1);
+    if (stateId >= 0 && stateId < this._lastStateId) return;
+    if (stateId >= 0) this._lastStateId = stateId;
+
     const items = data.items || data.slots || [];
 
     const slots = [];
@@ -338,6 +343,10 @@ class RawPacketInventory extends EventEmitter {
   // ── KEY FIX: _onSetSlotParsed handles itemCount correctly ─────────────
   _onSetSlotParsed(data) {
     if (!data) return;
+    const stateId = Number(data.stateId ?? -1);
+    if (stateId >= 0 && stateId < this._lastStateId) return;
+    if (stateId >= 0) this._lastStateId = stateId;
+
     const slotIndex = data.slot ?? -1;
     if (slotIndex < 0 || slotIndex > 500) return;
 
@@ -370,6 +379,7 @@ class RawPacketInventory extends EventEmitter {
   _onCloseWindow() {
     this.windowId = 0;
     this.windowTitle = 'Inventario';
+    this._lastStateId = -1;
     this.emit('windowClose');
   }
 
@@ -379,6 +389,7 @@ class RawPacketInventory extends EventEmitter {
     this.slots = []; this.windowTitle = 'Inventario'; this.windowId = 0;
     this._socketBuffer = Buffer.alloc(0); this._pktIdWindowItems = null;
     this._pktIdSetSlot = null; this._knownPktIds = new Set(); this._inGame = false;
+    this._lastStateId = -1;
   }
 
   detach() {

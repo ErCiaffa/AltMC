@@ -109,10 +109,11 @@
     #worldCanvas{display:block;width:100%;height:100%;}
     .wv-cross{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,.85);font-size:22px;pointer-events:none;text-shadow:1px 1px 3px rgba(0,0,0,.8);line-height:1;}
     .wv-info{position:absolute;top:8px;left:8px;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.75);text-shadow:1px 1px 2px #000;line-height:1.7;pointer-events:none;}
-    .wv-ctrl{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;}
+    .wv-ctrl{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;max-width:min(95%,900px);}
     .wv-btn{padding:6px 14px;font-family:var(--ui);font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.5);color:rgba(255,255,255,.8);border-radius:5px;cursor:pointer;transition:.15s;backdrop-filter:blur(4px);}
     .wv-btn:hover{border-color:var(--ac);color:var(--ac);}
     .wv-btn.on{border-color:var(--ac2);color:var(--ac2);}
+    .wv-btn.danger{border-color:rgba(255,59,59,.45);color:#ff7373;}
     .wv-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(7,10,15,.9);font-family:var(--mono);font-size:12px;color:var(--ac);}
     /* CHAT */
     .cl{display:flex;flex-direction:column;height:100%;padding:11px;gap:7px;overflow:hidden;}
@@ -388,7 +389,9 @@
     <div class="wv-ctrl">
       <button class="wv-btn" onclick="requestWorld()">🔄 Aggiorna</button>
       <button class="wv-btn" id="autoBtn" onclick="toggleAutoWorld()">Auto: OFF</button>
-      <span style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.5)" id="wvScale">16 blocchi</span>
+      <button class="wv-btn" onmousedown="useItem(true)" onmouseup="useItem(false)" onmouseleave="useItem(false)" ontouchstart="useItem(true)" ontouchend="useItem(false)">🖐 Usa</button>
+      <button class="wv-btn danger" onclick="swingArm()">⚔ Attacca</button>
+      <span style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.5)" id="wvScale">Drag: guarda · 16 blocchi</span>
     </div>
   </div>
 </div>
@@ -570,6 +573,8 @@ let renderAF = null;
 let worldActive = false;
 let fpsCount = 0, fpsLast = Date.now(), fpsVal = 0;
 let worldBlockCount = 0;
+let worldInputBound = false;
+let dragLook = null;
 
 function initThree() {
   if (three) return;
@@ -610,6 +615,7 @@ function initThree() {
 
   resizeWorld();
   startWorldLoop();
+  initWorldInput();
 
   document.getElementById('wvLoading').style.display = 'none';
 }
@@ -672,7 +678,7 @@ function rebuildWorld(data) {
   const mat = new THREE.Matrix4();
 
   for (const [color, blocks] of byColor) {
-    const material = new THREE.MeshLambertMaterial({ color });
+    const material = new THREE.MeshLambertMaterial({ color, flatShading: true });
     const mesh = new THREE.InstancedMesh(geo, material, blocks.length);
     mesh.frustumCulled = false;
     blocks.forEach((b, i) => {
@@ -696,6 +702,49 @@ function updateWorldCamera(pos) {
   three.camera.position.set(pos.x + dir.x * fwd, eyeY + dir.y * fwd, pos.z + dir.z * fwd);
   three.camera.lookAt(pos.x + dir.x * 4, eyeY + dir.y * 4, pos.z + dir.z * 4);
 }
+
+
+function initWorldInput() {
+  if (worldInputBound) return;
+  const canvas = document.getElementById('worldCanvas');
+  if (!canvas) return;
+  worldInputBound = true;
+
+  const start = (x, y) => {
+    dragLook = { x, y, yaw: botPos?.yaw || 0, pitch: botPos?.pitch || 0 };
+  };
+  const move = (x, y) => {
+    if (!dragLook || !botPos) return;
+    const dx = x - dragLook.x;
+    const dy = y - dragLook.y;
+    const sens = 0.0045;
+    const yaw = dragLook.yaw - dx * sens;
+    const pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, dragLook.pitch + dy * sens));
+    botPos.yaw = yaw; botPos.pitch = pitch;
+    updateWorldCamera(botPos);
+    drawCompass(yaw); updateDir(yaw); drawMM();
+    socket.emit('bot:look', { yaw, pitch });
+  };
+
+  canvas.addEventListener('mousedown', (e) => start(e.clientX, e.clientY));
+  window.addEventListener('mousemove', (e) => move(e.clientX, e.clientY));
+  window.addEventListener('mouseup', () => { dragLook = null; });
+
+  canvas.addEventListener('touchstart', (e) => {
+    const t = e.touches?.[0];
+    if (!t) return;
+    start(t.clientX, t.clientY);
+  }, { passive: true });
+  canvas.addEventListener('touchmove', (e) => {
+    const t = e.touches?.[0];
+    if (!t) return;
+    move(t.clientX, t.clientY);
+  }, { passive: true });
+  canvas.addEventListener('touchend', () => { dragLook = null; }, { passive: true });
+}
+
+function useItem(down) { socket.emit('bot:useitem', { state: !!down }); }
+function swingArm() { socket.emit('bot:swingarm'); }
 
 function requestWorld() {
   socket.emit('world:request');
@@ -814,7 +863,7 @@ socket.on('bot:pos', p => {
   drawMM(); drawCompass(yr); updateDir(yr);
   // World view camera sync
   if (worldActive && three) {
-    updateWorldCamera(p);
+    if (!dragLook) updateWorldCamera(p);
     document.getElementById('wvPos').textContent = `Pos: ${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)}`;
   }
 });
@@ -1100,7 +1149,9 @@ function makeSlot(item, si) {
     socket.emit('inventory:click', { slot:si });
   };
   if (item && item.name && item.name!=='air') {
-    div.appendChild(makeItemImg(item.name));
+    const img = makeItemImg(item.name);
+    if (!item.name.startsWith('item_')) div.appendChild(img);
+    else { const u=document.createElement('div'); u.style.cssText='font-size:10px;color:var(--txm);font-family:var(--mono)'; u.textContent='?'; div.appendChild(u); }
     if (item.count > 1) {
       const c=document.createElement('span'); c.className='ict'; c.textContent=item.count; div.appendChild(c);
     }
