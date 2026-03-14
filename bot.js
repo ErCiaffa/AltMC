@@ -480,6 +480,22 @@ function ipcRouter(msg) {
         } catch {}
       }
       break;
+
+    case 'use_item':
+      if (bot && state === 'online') {
+        try {
+          const down = msg?.data?.state !== false;
+          if (down) bot.activateItem();
+          else bot.deactivateItem();
+        } catch {}
+      }
+      break;
+
+    case 'swing_arm':
+      if (bot && state === 'online') {
+        try { bot.swingArm('right'); } catch {}
+      }
+      break;
  
     // NUOVO: tasto premi/rilascia
     case 'control':

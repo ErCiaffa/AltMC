@@ -107,6 +107,7 @@ class RawPacketInventory extends EventEmitter {
     this._pktIdSetSlot = null;
     this._pktIdOpenWindow = null;
     this._knownPktIds = new Set();
+    this._lastStateId = -1;
   }
 
   attach(client) {
@@ -302,14 +303,27 @@ class RawPacketInventory extends EventEmitter {
     this.windowId = windowId.value;
     this.windowTitle = title.value || 'Inventario';
     this.slots = [];
+    this._lastStateId = -1;
     this.emit('windowOpen', this.windowTitle);
+    this.emit('update', this.getInventory());
   }
 
   // ── KEY FIX: _onWindowItemsParsed handles itemId/itemCount correctly ──
   _onWindowItemsParsed(data) {
     if (!data) return;
+
+    const incomingWindowId = Number(data.windowId ?? this.windowId ?? 0);
+    if (Number.isFinite(incomingWindowId) && incomingWindowId !== this.windowId) {
+      this.windowId = incomingWindowId;
+      this._lastStateId = -1;
+      this.slots = [];
+    }
+
+    const stateId = Number(data.stateId ?? -1);
+    if (stateId >= 0 && stateId < this._lastStateId) return;
+    if (stateId >= 0) this._lastStateId = stateId;
+
     const items = data.items || data.slots || [];
-    if (!items.length) return;
 
     const slots = [];
     for (let i = 0; i < items.length; i++) {
@@ -321,10 +335,10 @@ class RawPacketInventory extends EventEmitter {
       if (count <= 0) continue;
 
       // KEY: use itemId (1.21.x), fallback to type (older), then blockId
-      const itemId = item.itemId ?? item.type ?? item.blockId ?? null;
+      const itemId = item.itemId ?? item.type ?? item.blockId ?? item.id ?? null;
       if (!itemId || itemId <= 0) continue;
 
-      const name = item.name || this.registry.getName(itemId);
+      const name = item.name || item.displayName || this.registry.getName(itemId);
       if (!name || name === 'air') continue;
 
       slots.push({ slot: i, itemId, count, name, displayName: this._fmt(name) });
@@ -339,19 +353,27 @@ class RawPacketInventory extends EventEmitter {
   // ── KEY FIX: _onSetSlotParsed handles itemCount correctly ─────────────
   _onSetSlotParsed(data) {
     if (!data) return;
+
+    const incomingWindowId = Number(data.windowId ?? this.windowId ?? 0);
+    if (Number.isFinite(incomingWindowId) && incomingWindowId !== this.windowId) return;
+
+    const stateId = Number(data.stateId ?? -1);
+    if (stateId >= 0 && stateId < this._lastStateId) return;
+    if (stateId >= 0) this._lastStateId = stateId;
+
     const slotIndex = data.slot ?? -1;
     if (slotIndex < 0 || slotIndex > 500) return;
 
     const item = data.item || data.slotData;
     // KEY: use itemCount, not count
     const count = item?.itemCount ?? item?.count ?? 0;
-    const itemId = item?.itemId ?? item?.type ?? item?.blockId ?? null;
+    const itemId = item?.itemId ?? item?.type ?? item?.blockId ?? item?.id ?? null;
 
     // Remove existing entry for this slot
     this.slots = this.slots.filter(s => s.slot !== slotIndex);
 
     if (count > 0 && itemId && itemId > 0) {
-      const name = item?.name || this.registry.getName(itemId);
+      const name = item?.name || item?.displayName || this.registry.getName(itemId);
       if (name && name !== 'air') {
         this.slots.push({ slot: slotIndex, itemId, count, name, displayName: this._fmt(name) });
         this.slots.sort((a, b) => a.slot - b.slot);
@@ -365,12 +387,15 @@ class RawPacketInventory extends EventEmitter {
     this.windowId = data.windowId ?? 0;
     this.windowTitle = this._extractTitle(data);
     this.slots = [];
+    this._lastStateId = -1;
     this.emit('windowOpen', this.windowTitle);
+    this.emit('update', this.getInventory());
   }
 
   _onCloseWindow() {
     this.windowId = 0;
     this.windowTitle = 'Inventario';
+    this._lastStateId = -1;
     this.emit('windowClose');
   }
 
@@ -380,6 +405,7 @@ class RawPacketInventory extends EventEmitter {
     this.slots = []; this.windowTitle = 'Inventario'; this.windowId = 0;
     this._socketBuffer = Buffer.alloc(0); this._pktIdWindowItems = null;
     this._pktIdSetSlot = null; this._knownPktIds = new Set(); this._inGame = false;
+    this._lastStateId = -1;
   }
 
   detach() {
@@ -396,6 +422,9 @@ class RawPacketInventory extends EventEmitter {
     try {
       const t = data.windowTitle || data.title || data.name || 'Inventario';
       if (typeof t === 'string') { try { return JSON.parse(t)?.text || t; } catch { return t; } }
+      if (t?.type === 'string' && typeof t?.value === 'string') return t.value;
+      if (typeof t?.value === 'string') return t.value;
+      if (t?.value?.text) return t.value.text;
       return t?.text || t?.translate || 'Inventario';
     } catch { return 'Inventario'; }
   }

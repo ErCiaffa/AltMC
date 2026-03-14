@@ -58,7 +58,7 @@
     .wt{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--txm);}
     .wb{padding:12px;}
     /* MONITOR */
-    .mg{display:grid;grid-template-columns:260px 1fr 210px;gap:11px;padding:13px;}
+    .mg{display:grid;grid-template-columns:minmax(260px,300px) minmax(620px,1fr) minmax(220px,260px);gap:11px;padding:13px;align-items:start;}
     .sr{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;grid-column:1/-1;}
     .sc2{background:var(--s1);border:1px solid var(--b1);border-radius:9px;padding:11px 13px;display:flex;align-items:center;gap:9px;}
     .si{font-size:20px;}
@@ -76,6 +76,7 @@
     /* MINIMAP */
     .mm-wrap{display:flex;flex-direction:column;align-items:center;gap:7px;padding:10px;}
     #minimap{border-radius:7px;border:1px solid var(--b2);display:block;}
+    .radar-card{min-width:220px;}
     .mcb{padding:3px 8px;font-family:var(--mono);font-size:10px;background:var(--s3);border:1px solid var(--b2);border-radius:4px;cursor:pointer;color:var(--txm);transition:.15s;}
     .mcb:hover{color:var(--tx);border-color:var(--ac);}
     /* BOT VISUAL */
@@ -88,6 +89,8 @@
     .hc{display:flex;flex-direction:column;gap:7px;}
     .sr2{display:flex;align-items:center;gap:7px;}
     .sr2 label{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--txm);width:34px;flex-shrink:0;}
+    .mc-center .sr2{gap:9px;}
+    .mc-center .sr2 input[type=range]{min-width:260px;}
     input[type=range]{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--s3);outline:none;cursor:pointer;}
     input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--ac);cursor:pointer;box-shadow:0 0 6px rgba(0,212,255,.4);}
     .sv{font-family:var(--mono);font-size:10px;color:var(--ac);width:36px;text-align:right;flex-shrink:0;}
@@ -109,10 +112,11 @@
     #worldCanvas{display:block;width:100%;height:100%;}
     .wv-cross{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,.85);font-size:22px;pointer-events:none;text-shadow:1px 1px 3px rgba(0,0,0,.8);line-height:1;}
     .wv-info{position:absolute;top:8px;left:8px;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.75);text-shadow:1px 1px 2px #000;line-height:1.7;pointer-events:none;}
-    .wv-ctrl{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;}
+    .wv-ctrl{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;max-width:min(95%,900px);}
     .wv-btn{padding:6px 14px;font-family:var(--ui);font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.5);color:rgba(255,255,255,.8);border-radius:5px;cursor:pointer;transition:.15s;backdrop-filter:blur(4px);}
     .wv-btn:hover{border-color:var(--ac);color:var(--ac);}
     .wv-btn.on{border-color:var(--ac2);color:var(--ac2);}
+    .wv-btn.danger{border-color:rgba(255,59,59,.45);color:#ff7373;}
     .wv-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(7,10,15,.9);font-family:var(--mono);font-size:12px;color:var(--ac);}
     /* CHAT */
     .cl{display:flex;flex-direction:column;height:100%;padding:11px;gap:7px;overflow:hidden;}
@@ -203,6 +207,11 @@
     .le,.ld{background:rgba(255,59,59,.1);color:var(--red);}
     .sysm{color:var(--tx);word-break:break-all;line-height:1.5;}
     /* MOBILE */
+    @media(max-width:1400px){
+      .mg{grid-template-columns:1fr 1fr;}
+      .mc-center{grid-column:1/-1;}
+      .mg>div:last-child{grid-column:1/-1;}
+    }
     @media(max-width:768px){
       .app{grid-template-columns:1fr;grid-template-areas:"hd""mn";}
       aside{position:fixed;top:0;left:0;bottom:0;width:240px;transform:translateX(-100%);z-index:25;padding-top:var(--sh);}
@@ -302,7 +311,7 @@
     </div>
   </div>
   <!-- CENTER: bot + sliders -->
-  <div style="display:flex;flex-direction:column;gap:11px">
+  <div class="mc-center" style="display:flex;flex-direction:column;gap:11px">
     <div class="w">
       <div class="wh">
         <span class="wt">🤖 Bot / Sguardo</span>
@@ -345,7 +354,7 @@
     </div>
   </div>
   <!-- RIGHT: minimap -->
-  <div class="w" style="grid-row:2/4">
+  <div class="w radar-card">
     <div class="wh">
       <span class="wt">🗺 Radar</span>
       <div style="display:flex;gap:4px;align-items:center">
@@ -384,7 +393,9 @@
     <div class="wv-ctrl">
       <button class="wv-btn" onclick="requestWorld()">🔄 Aggiorna</button>
       <button class="wv-btn" id="autoBtn" onclick="toggleAutoWorld()">Auto: OFF</button>
-      <span style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.5)" id="wvScale">16 blocchi</span>
+      <button class="wv-btn" onmousedown="useItem(true)" onmouseup="useItem(false)" onmouseleave="useItem(false)" ontouchstart="useItem(true)" ontouchend="useItem(false)">🖐 Usa</button>
+      <button class="wv-btn danger" onclick="swingArm()">⚔ Attacca</button>
+      <span style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.5)" id="wvScale">Drag: guarda · 16 blocchi</span>
     </div>
   </div>
 </div>
@@ -566,6 +577,8 @@ let renderAF = null;
 let worldActive = false;
 let fpsCount = 0, fpsLast = Date.now(), fpsVal = 0;
 let worldBlockCount = 0;
+let worldInputBound = false;
+let dragLook = null;
 
 function initThree() {
   if (three) return;
@@ -606,6 +619,7 @@ function initThree() {
 
   resizeWorld();
   startWorldLoop();
+  initWorldInput();
 
   document.getElementById('wvLoading').style.display = 'none';
 }
@@ -668,7 +682,7 @@ function rebuildWorld(data) {
   const mat = new THREE.Matrix4();
 
   for (const [color, blocks] of byColor) {
-    const material = new THREE.MeshLambertMaterial({ color });
+    const material = new THREE.MeshLambertMaterial({ color, flatShading: true });
     const mesh = new THREE.InstancedMesh(geo, material, blocks.length);
     mesh.frustumCulled = false;
     blocks.forEach((b, i) => {
@@ -683,15 +697,58 @@ function rebuildWorld(data) {
 
 function updateWorldCamera(pos) {
   if (!three || !pos) return;
-  // Eye height: Minecraft entity eye = y + 1.62
-  three.camera.position.set(pos.x, pos.y + 1.62, pos.z);
-  // Minecraft yaw convention: 0=South(+Z), π/2=West(-X), π=North(-Z), -π/2=East(+X)
-  // Three.js YXZ: rotation.y=π+yaw points camera to South when yaw=0
-  // rotation.y=π+0 → faces +Z ✓
-  // rotation.x=-pitch → positive pitch (looking down) becomes negative rotation.x ✓
-  three.camera.rotation.y = Math.PI + (pos.yaw || 0);
-  three.camera.rotation.x = -(pos.pitch || 0);
+  const yaw = pos.yaw || 0;
+  const pitch = pos.pitch || 0;
+  const eyeY = (pos.y || 0) + 1.62;
+  const dir = lookVector(yaw, pitch);
+  const fwd = 0.18; // tiny offset to avoid clipping the bot head/model in first-person view
+
+  three.camera.position.set(pos.x + dir.x * fwd, eyeY + dir.y * fwd, pos.z + dir.z * fwd);
+  three.camera.lookAt(pos.x + dir.x * 4, eyeY + dir.y * 4, pos.z + dir.z * 4);
 }
+
+
+function initWorldInput() {
+  if (worldInputBound) return;
+  const canvas = document.getElementById('worldCanvas');
+  if (!canvas) return;
+  worldInputBound = true;
+
+  const start = (x, y) => {
+    dragLook = { x, y, yaw: botPos?.yaw || 0, pitch: botPos?.pitch || 0 };
+  };
+  const move = (x, y) => {
+    if (!dragLook || !botPos) return;
+    const dx = x - dragLook.x;
+    const dy = y - dragLook.y;
+    const sens = 0.0045;
+    const yaw = dragLook.yaw - dx * sens;
+    const pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, dragLook.pitch + dy * sens));
+    botPos.yaw = yaw; botPos.pitch = pitch;
+    updateWorldCamera(botPos);
+    drawCompass(yaw); updateDir(yaw); drawMM();
+    socket.emit('bot:look', { yaw, pitch });
+  };
+
+  canvas.addEventListener('mousedown', (e) => start(e.clientX, e.clientY));
+  window.addEventListener('mousemove', (e) => move(e.clientX, e.clientY));
+  window.addEventListener('mouseup', () => { dragLook = null; });
+
+  canvas.addEventListener('touchstart', (e) => {
+    const t = e.touches?.[0];
+    if (!t) return;
+    start(t.clientX, t.clientY);
+  }, { passive: true });
+  canvas.addEventListener('touchmove', (e) => {
+    const t = e.touches?.[0];
+    if (!t) return;
+    move(t.clientX, t.clientY);
+  }, { passive: true });
+  canvas.addEventListener('touchend', () => { dragLook = null; }, { passive: true });
+}
+
+function useItem(down) { socket.emit('bot:useitem', { state: !!down }); }
+function swingArm() { socket.emit('bot:swingarm'); }
 
 function requestWorld() {
   socket.emit('world:request');
@@ -807,10 +864,10 @@ socket.on('bot:pos', p => {
   document.getElementById('pv').textContent = pd.toFixed(1)+'°';
   document.getElementById('lookD').textContent = `Yaw:${yd.toFixed(0)}° Pitch:${pd.toFixed(0)}°`;
   posTrail.push({x:p.x,z:p.z}); if(posTrail.length>500) posTrail.shift();
-  drawMM(); drawCompass(yr); updateDir(yd);
+  drawMM(); drawCompass(yr); updateDir(yr);
   // World view camera sync
   if (worldActive && three) {
-    updateWorldCamera(p);
+    if (!dragLook) updateWorldCamera(p);
     document.getElementById('wvPos').textContent = `Pos: ${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)}`;
   }
 });
@@ -839,7 +896,7 @@ socket.on('bot:world', data => {
     rebuildWorld(data);
     if (data.pos) {
       updateWorldCamera(data.pos);
-      const d = compassDir(data.pos.yaw*180/Math.PI);
+      const d = compassDir(data.pos.yaw || 0);
       document.getElementById('wvDir').textContent = `Dir: ${d}`;
     }
     document.getElementById('wvLoading').style.display = 'none';
@@ -896,14 +953,22 @@ function updateSt(state) {
 }
 
 // ══════════════════════════════════════════════
-// MINIMAP — yaw fix Minecraft convention
-// MC yaw (rad): 0=South(+Z), π/2=West(-X), ±π=North(-Z), -π/2=East(+X)
-// Arrow rotation on canvas: yaw + π
-//  yaw=0(S)   → π     → arrow down(south)  ✓
-//  yaw=π(N)   → 2π=0  → arrow up(north)    ✓
-//  yaw=-π/2(E)→ π/2   → arrow right(east)  ✓
-//  yaw=π/2(W) → 3π/2  → arrow left(west)   ✓
+// MINIMAP / RADAR HELPERS
 // ══════════════════════════════════════════════
+function lookVector(yawRad=0, pitchRad=0) {
+  const cp = Math.cos(pitchRad || 0);
+  return {
+    x: -Math.sin(yawRad || 0) * cp,
+    y: Math.sin(pitchRad || 0),
+    z: -Math.cos(yawRad || 0) * cp
+  };
+}
+
+function radarAngleFromYaw(yawRad=0) {
+  const v = lookVector(yawRad, 0);
+  return Math.atan2(v.x, -v.z);
+}
+
 function resetTrail() { posTrail=[]; drawMM(); }
 function mmZ(d) {
   mmScaleIdx = Math.max(0, Math.min(mmScales.length-1, mmScaleIdx+d));
@@ -936,8 +1001,8 @@ function drawMM() {
   // Cardinal labels
   ctx.fillStyle='rgba(100,120,140,.65)'; ctx.font='bold 9px monospace'; ctx.textAlign='center';
   ctx.fillText('N',cx,11); ctx.fillText('S',cx,H-2);
-  ctx.textAlign='left'; ctx.fillText('E',4,cy+4);
-  ctx.textAlign='right'; ctx.fillText('O',W-4,cy+4);
+  ctx.textAlign='center'; ctx.fillText('O',10,cy+4);
+  ctx.fillText('E',W-10,cy+4);
 
   if (!botPos) {
     ctx.fillStyle='rgba(100,120,140,.4)'; ctx.font='9px monospace'; ctx.textAlign='center';
@@ -954,7 +1019,7 @@ function drawMM() {
     ctx.stroke();
   }
   // Arrow: rotation = yaw + π (see explanation above)
-  const arrowRot = (botPos.yaw||0) + Math.PI;
+  const arrowRot = radarAngleFromYaw(botPos.yaw||0);
   ctx.save(); ctx.translate(cx,cy); ctx.rotate(arrowRot);
   ctx.shadowColor='#00d4ff'; ctx.shadowBlur=8;
   ctx.fillStyle='#00d4ff';
@@ -980,7 +1045,7 @@ function drawCompass(yawRad) {
   ctx.strokeStyle='rgba(46,58,71,.8)'; ctx.lineWidth=1;
   ctx.beginPath(); ctx.arc(cx,cy,r+2,0,Math.PI*2); ctx.stroke();
   // Same rotation formula as minimap
-  const rot = (yawRad||0) + Math.PI;
+  const rot = radarAngleFromYaw(yawRad||0);
   ctx.save(); ctx.translate(cx,cy); ctx.rotate(rot);
   ctx.fillStyle='#ff4444';
   ctx.beginPath(); ctx.moveTo(0,-r+2); ctx.lineTo(3,0); ctx.lineTo(-3,0); ctx.closePath(); ctx.fill();
@@ -995,12 +1060,12 @@ function drawCompass(yawRad) {
   ctx.textAlign='right'; ctx.fillText('O',cx-r+4,cy+3);
 }
 
-function compassDir(yd) {
-  // MC: 0=S, 90=O, ±180=N, -90=E
-  const dirs=['S','SO','O','NO','N','NE','E','SE'];
-  return dirs[Math.round(((yd+180)%360+360)%360/45)%8];
+function compassDir(yawRad) {
+  const deg = (radarAngleFromYaw(yawRad) * 180 / Math.PI + 360) % 360;
+  const dirs = ['N','NE','E','SE','S','SO','O','NO'];
+  return dirs[Math.round(deg / 45) % 8];
 }
-function updateDir(yd) { document.getElementById('cdir').textContent = compassDir(yd); }
+function updateDir(yawRad) { document.getElementById('cdir').textContent = compassDir(yawRad); }
 
 drawMM(); drawCompass(0);
 
@@ -1015,7 +1080,7 @@ function doLook() {
   lookT = setTimeout(()=>{
     const yr = curYaw*Math.PI/180, pr = curPitch*Math.PI/180;
     socket.emit('bot:look', { yaw:yr, pitch:pr });
-    drawCompass(yr); updateDir(curYaw);
+    drawCompass(yr); updateDir(yr);
     if (botPos) { botPos.yaw=yr; drawMM(); }
     if (worldActive && three) updateWorldCamera({...botPos, yaw:yr, pitch:pr});
   }, 60);
@@ -1088,7 +1153,9 @@ function makeSlot(item, si) {
     socket.emit('inventory:click', { slot:si });
   };
   if (item && item.name && item.name!=='air') {
-    div.appendChild(makeItemImg(item.name));
+    const img = makeItemImg(item.name);
+    if (!item.name.startsWith('item_')) div.appendChild(img);
+    else { const u=document.createElement('div'); u.style.cssText='font-size:10px;color:var(--txm);font-family:var(--mono)'; u.textContent='?'; div.appendChild(u); }
     if (item.count > 1) {
       const c=document.createElement('span'); c.className='ict'; c.textContent=item.count; div.appendChild(c);
     }
@@ -1102,9 +1169,12 @@ function renderInv(data) {
   // Build slot map, filtering air
   const map = {};
   (data.slots||[]).forEach(s => {
-    if (s && s.name && s.name!=='air' && (s.count||s.itemCount||0)>0) {
-      map[s.slot] = { ...s, count: s.count || s.itemCount || 1 };
-    }
+    const count = Number(s?.count ?? s?.itemCount ?? 0);
+    const slot = Number(s?.slot);
+    if (Number.isNaN(slot) || count <= 0) return;
+    const name = s?.name || (s?.itemId ? `item_${s.itemId}` : null);
+    if (!name || name === 'air') return;
+    map[slot] = { ...s, slot, name, count };
   });
   const isCustom = data.title && data.title!=='Inventario' && data.title!=='Inventory';
 
