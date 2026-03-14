@@ -353,10 +353,6 @@ class RawPacketInventory extends EventEmitter {
   // ── KEY FIX: _onSetSlotParsed handles itemCount correctly ─────────────
   _onSetSlotParsed(data) {
     if (!data) return;
-
-    const incomingWindowId = Number(data.windowId ?? this.windowId ?? 0);
-    if (Number.isFinite(incomingWindowId) && incomingWindowId !== this.windowId) return;
-
     const stateId = Number(data.stateId ?? -1);
     if (stateId >= 0 && stateId < this._lastStateId) return;
     if (stateId >= 0) this._lastStateId = stateId;
