@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCBot — Accesso</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#080b10;--surface:#0d1117;--surface2:#161b22;
+      --border:#30363d;--accent:#00d4ff;--accent2:#00ff88;
+      --danger:#ff4444;--text:#e6edf3;--text-muted:#8b949e;
+      --font-ui:'Rajdhani',sans-serif;--font-mono:'JetBrains Mono',monospace;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:var(--font-ui);min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+    body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;animation:gridScroll 20s linear infinite;}
+    @keyframes gridScroll{from{background-position:0 0}to{background-position:40px 40px}}
+    body::after{content:'';position:fixed;top:-30%;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(ellipse,rgba(0,212,255,.08) 0%,transparent 65%);pointer-events:none;}
+
+    .card{position:relative;z-index:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:40px;width:360px;max-width:90vw;}
+    .logo{display:flex;align-items:center;gap:12px;margin-bottom:32px;justify-content:center;}
+    .logo-hex{width:36px;height:36px;background:var(--accent);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);flex-shrink:0;}
+    .logo-text{font-size:26px;font-weight:700;letter-spacing:4px;text-transform:uppercase;}
+    .logo-text span{color:var(--accent);}
+    h2{text-align:center;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--text-muted);margin-bottom:28px;}
+
+    .fg{margin-bottom:16px;}
+    .fg label{display:block;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;}
+    .fg input{width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font-mono);font-size:13px;outline:none;transition:border-color .2s;}
+    .fg input:focus{border-color:var(--accent);}
+
+    .btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),#0088aa);color:var(--bg);border:none;border-radius:6px;font-family:var(--font-ui);font-size:17px;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-top:8px;}
+    .btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,212,255,.3);}
+    .btn:active{transform:translateY(0);}
+    .btn:disabled{background:var(--surface2);color:var(--text-muted);cursor:not-allowed;transform:none;box-shadow:none;}
+
+    .error{background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.3);color:var(--danger);border-radius:6px;padding:10px 14px;font-family:var(--font-mono);font-size:12px;margin-top:12px;display:none;}
+    .error.show{display:block;}
+
+    .footer{text-align:center;margin-top:20px;font-family:var(--font-mono);font-size:10px;color:var(--text-muted);letter-spacing:1px;}
+    .shield{text-align:center;font-size:32px;margin-bottom:12px;}
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-hex"></div>
+    <div class="logo-text">MC<span>BOT</span></div>
+  </div>
+  <div class="shield">🔒</div>
+  <h2>Accesso Sicuro</h2>
+  <div class="fg">
+    <label>Password</label>
+    <input type="password" id="pwd" placeholder="••••••••" autofocus onkeydown="if(event.key==='Enter')doLogin()">
+  </div>
+  <button class="btn" onclick="doLogin()" id="btn">ACCEDI</button>
+  <div class="error" id="err">Password errata. Riprova.</div>
+  <div class="footer">// accesso riservato agli amministratori</div>
+</div>
+<script>
+async function doLogin() {
+  const pwd = document.getElementById('pwd').value;
+  const btn = document.getElementById('btn');
+  const err = document.getElementById('err');
+  if (!pwd) return;
+  btn.disabled = true; btn.textContent = 'VERIFICA...';
+  err.classList.remove('show');
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd })
+    });
+    if (res.ok) {
+      btn.textContent = 'ACCESSO ✓';
+      setTimeout(() => { window.location.href = '/'; }, 400);
+    } else {
+      err.classList.add('show');
+      btn.disabled = false; btn.textContent = 'ACCEDI';
+      document.getElementById('pwd').value = '';
+      document.getElementById('pwd').focus();
+    }
+  } catch {
+    err.textContent = 'Errore di rete.';
+    err.classList.add('show');
+    btn.disabled = false; btn.textContent = 'ACCEDI';
+  }
+}
+</script>
+</body>
+</html>

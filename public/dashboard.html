@@ -2,662 +2,1207 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>MCBot — Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg:#080b10;--surface:#0d1117;--surface2:#161b22;--surface3:#21262d;
-      --border:#30363d;--accent:#00d4ff;--accent2:#00ff88;--danger:#ff4444;
-      --warn:#ffaa00;--purple:#a855f7;--text:#e6edf3;--text-muted:#8b949e;--text-dim:#484f58;
-      --font-ui:'Rajdhani',sans-serif;--font-mono:'JetBrains Mono',monospace;
-      --sidebar:220px;--header:56px;
-    }
-    *{box-sizing:border-box;margin:0;padding:0;}
-    body{background:var(--bg);color:var(--text);font-family:var(--font-ui);height:100vh;display:grid;grid-template-rows:var(--header) 1fr;grid-template-columns:var(--sidebar) 1fr;grid-template-areas:"header header""sidebar main";overflow:hidden;}
-
-    header{grid-area:header;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--border);background:var(--surface);z-index:20;}
-    .logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;letter-spacing:3px;text-transform:uppercase;}
-    .logo-hex{width:28px;height:28px;background:var(--accent);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);}
-    .logo span{color:var(--accent);}
-    .header-pills{display:flex;align-items:center;gap:16px;}
-    .pill{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);padding:4px 12px;border-radius:99px;font-family:var(--font-mono);font-size:12px;}
-    .pill .lbl{color:var(--text-muted);}
-    .header-right{display:flex;align-items:center;gap:10px;}
-    .status-badge{display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);padding:4px 12px;border-radius:99px;font-family:var(--font-mono);font-size:12px;}
-    .dot{width:7px;height:7px;border-radius:50%;background:var(--text-dim);}
-    .dot.on{background:var(--accent2);box-shadow:0 0 6px var(--accent2);animation:pulse 2s infinite;}
-    .dot.connecting{background:var(--warn);animation:pulse .6s infinite;}
-    .dot.off{background:var(--danger);}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-    .btn-sm{font-family:var(--font-ui);font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:5px 12px;border-radius:6px;border:none;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;}
-    .btn-sm.ghost{background:var(--surface3);color:var(--text-muted);}
-    .btn-sm.ghost:hover{color:var(--text);}
-    .btn-sm.danger{background:rgba(255,68,68,.15);color:var(--danger);border:1px solid rgba(255,68,68,.3);}
-    .btn-sm.danger:hover{background:rgba(255,68,68,.25);}
-
-    aside{grid-area:sidebar;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:12px 0;overflow-y:auto;}
-    .nav-section{padding:8px 16px 4px;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);}
-    .nav-item{display:flex;align-items:center;gap:12px;padding:9px 20px;cursor:pointer;transition:all .15s;border-left:2px solid transparent;font-size:15px;font-weight:500;color:var(--text-muted);user-select:none;}
-    .nav-item:hover{color:var(--text);background:rgba(255,255,255,.03);}
-    .nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(0,212,255,.07);}
-    .nav-item .ic{font-size:17px;width:22px;text-align:center;}
-    .nav-badge{margin-left:auto;font-family:var(--font-mono);font-size:10px;background:var(--danger);color:white;padding:1px 6px;border-radius:99px;}
-    .sidebar-footer{margin-top:auto;padding:14px;border-top:1px solid var(--border);}
-    .player-card{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);padding:10px;border-radius:6px;}
-    .player-avatar{width:36px;height:36px;border-radius:6px;background:rgba(0,212,255,.2);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;}
-    .player-name{font-size:14px;font-weight:600;}
-    .player-server{font-family:var(--font-mono);font-size:10px;color:var(--text-muted);}
-
-    main{grid-area:main;overflow:hidden;display:flex;flex-direction:column;}
-    .tab-panel{display:none;flex:1;overflow:hidden;}
-    .tab-panel.active{display:flex;flex-direction:column;overflow:hidden;}
-
+    :root{--bg:#070a0f;--s1:#0c1018;--s2:#141b24;--s3:#1d2630;--b1:#252d38;--b2:#2e3a47;--ac:#00d4ff;--ac2:#00ff88;--red:#ff3b3b;--warn:#ffaa00;--tx:#dde8f0;--txm:#7a90a4;--txd:#3d5066;--ui:'Rajdhani',sans-serif;--mono:'JetBrains Mono',monospace;--sw:230px;--sh:54px;}
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+    html,body{height:100%;overflow:hidden;}
+    body{background:var(--bg);color:var(--tx);font-family:var(--ui);}
+    .app{display:grid;grid-template-rows:var(--sh) 1fr;grid-template-columns:var(--sw) 1fr;grid-template-areas:"hd hd""sb mn";height:100vh;}
+    /* HDR */
+    header{grid-area:hd;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid var(--b1);background:rgba(10,14,20,.98);z-index:30;}
+    .burger{display:none;background:none;border:none;cursor:pointer;padding:6px;flex-direction:column;gap:4px;}
+    .burger span{display:block;width:20px;height:2px;background:var(--txm);border-radius:2px;}
+    .logo{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:700;letter-spacing:3px;white-space:nowrap;}
+    .logo-h{width:24px;height:24px;background:var(--ac);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);}
+    .logo span{color:var(--ac);}
+    .pills{display:flex;align-items:center;gap:6px;flex:1;justify-content:center;overflow:hidden;}
+    .pill{display:flex;align-items:center;gap:4px;background:var(--s2);border:1px solid var(--b2);padding:3px 9px;border-radius:99px;font-family:var(--mono);font-size:11px;white-space:nowrap;}
+    .pill .l{color:var(--txm);}
+    .hr{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+    .sbdg{display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--b2);padding:3px 9px;border-radius:99px;font-family:var(--mono);font-size:11px;}
+    .dot{width:7px;height:7px;border-radius:50%;background:var(--txd);flex-shrink:0;}
+    .dot.on{background:var(--ac2);box-shadow:0 0 8px var(--ac2);animation:blink 2s infinite;}
+    .dot.co{background:var(--warn);animation:blink .6s infinite;}
+    .dot.of{background:var(--red);}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+    .btn{font-family:var(--ui);font-size:12px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:5px 10px;border-radius:5px;border:none;cursor:pointer;transition:.15s;text-decoration:none;display:inline-flex;align-items:center;white-space:nowrap;}
+    .btn.g{background:var(--s3);color:var(--txm);}.btn.g:hover{color:var(--tx);}
+    .btn.r{background:rgba(255,59,59,.15);color:var(--red);border:1px solid rgba(255,59,59,.3);}.btn.r:hover{background:rgba(255,59,59,.28);}
+    /* SIDEBAR */
+    aside{grid-area:sb;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;overflow-y:auto;transition:transform .25s;z-index:25;}
+    .ns{padding:10px 16px 3px;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--txd);}
+    .ni{display:flex;align-items:center;gap:10px;padding:9px 18px;cursor:pointer;transition:.15s;border-left:2px solid transparent;font-size:14px;font-weight:500;color:var(--txm);user-select:none;}
+    .ni:hover{color:var(--tx);background:rgba(255,255,255,.025);}
+    .ni.active{color:var(--ac);border-left-color:var(--ac);background:rgba(0,212,255,.06);}
+    .ni .ic{font-size:14px;width:18px;text-align:center;}
+    .nbdg{margin-left:auto;font-family:var(--mono);font-size:9px;background:var(--red);color:#fff;padding:1px 5px;border-radius:99px;}
+    .sft{margin-top:auto;padding:10px;border-top:1px solid var(--b1);}
+    .pc{display:flex;align-items:center;gap:9px;background:var(--s2);border:1px solid var(--b2);padding:9px;border-radius:7px;}
+    .pav{width:34px;height:34px;border-radius:5px;overflow:hidden;flex-shrink:0;background:var(--s3);}
+    .pav img{width:100%;height:100%;object-fit:cover;display:block;image-rendering:pixelated;}
+    .pn{font-size:13px;font-weight:600;line-height:1.2;}.ps{font-family:var(--mono);font-size:9px;color:var(--txm);}
+    .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:24;}
+    /* MAIN */
+    main{grid-area:mn;overflow:hidden;display:flex;flex-direction:column;}
+    .tp{display:none;flex:1;overflow:hidden;flex-direction:column;}
+    .tp.active{display:flex;}
+    .sc{overflow-y:auto;flex:1;}
+    .sc::-webkit-scrollbar{width:3px;}
+    .sc::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px;}
+    /* WIDGETS */
+    .w{background:var(--s1);border:1px solid var(--b1);border-radius:10px;overflow:hidden;}
+    .wh{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--b1);background:var(--s2);}
+    .wt{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--txm);}
+    .wb{padding:12px;}
     /* MONITOR */
-    .monitor-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;padding:16px;overflow-y:auto;flex:1;}
-    .stats-row{display:flex;gap:14px;grid-column:1/-1;}
-    .stat-card{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:14px;}
-    .stat-icon{font-size:26px;}
-    .stat-info .num{font-size:26px;font-weight:700;font-family:var(--font-mono);line-height:1;}
-    .stat-info .lbl{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);}
-    .widget{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
-    .widget-header{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--border);background:var(--surface2);}
-    .widget-title{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);}
-    .widget-body{padding:14px;}
-    .bar-group{margin-bottom:12px;}
-    .bar-label{display:flex;justify-content:space-between;margin-bottom:4px;font-family:var(--font-mono);font-size:11px;}
-    .bar-label .name{color:var(--text-muted);}
-    .bar-track{height:7px;background:var(--surface3);border-radius:4px;overflow:hidden;}
-    .bar-fill{height:100%;border-radius:4px;transition:width .5s;}
-    .bar-fill.health{background:linear-gradient(90deg,var(--danger),#ff8844);}
-    .bar-fill.food{background:linear-gradient(90deg,var(--warn),#ffcc44);}
-    .bar-fill.sat{background:linear-gradient(90deg,var(--accent2),#44ffaa);}
-    .coords-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
-    .coord-box{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:9px;text-align:center;}
-    .coord-axis{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px;}
-    .coord-val{font-family:var(--font-mono);font-size:15px;}
-    .dpad{display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,46px);gap:4px;margin:0 auto;width:fit-content;}
-    .dpad-btn{width:46px;height:46px;border:1px solid var(--border);background:var(--surface2);border-radius:6px;color:var(--text-muted);font-size:18px;cursor:pointer;transition:all .1s;display:flex;align-items:center;justify-content:center;}
-    .dpad-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,.08);}
-    .dpad-btn:active{transform:scale(.92);}
-    .dpad-empty{width:46px;height:46px;}
-    .toggle-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-    .toggle-label{font-size:14px;font-weight:600;}
-    .toggle{width:42px;height:22px;background:var(--surface3);border-radius:11px;position:relative;cursor:pointer;transition:background .2s;}
-    .toggle.on{background:var(--accent);}
-    .toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;background:white;border-radius:50%;transition:transform .2s;}
-    .toggle.on::after{transform:translateX(20px);}
-    .strategy-btns{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
-    .strategy-btn{padding:7px;font-family:var(--font-ui);font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);border-radius:6px;cursor:pointer;transition:all .15s;}
-    .strategy-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,.08);}
-
+    .mg{display:grid;grid-template-columns:260px 1fr 210px;gap:11px;padding:13px;}
+    .sr{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;grid-column:1/-1;}
+    .sc2{background:var(--s1);border:1px solid var(--b1);border-radius:9px;padding:11px 13px;display:flex;align-items:center;gap:9px;}
+    .si{font-size:20px;}
+    .sn{font-size:22px;font-weight:700;font-family:var(--mono);line-height:1;}
+    .sl{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--txm);}
+    /* BARS */
+    .bg{margin-bottom:9px;}
+    .bl{display:flex;justify-content:space-between;margin-bottom:3px;font-family:var(--mono);font-size:10px;}
+    .bl .n{color:var(--txm);}
+    .bt{height:6px;background:var(--s3);border-radius:3px;overflow:hidden;}
+    .bf{height:100%;border-radius:3px;transition:width .5s ease;}
+    .bf.h{background:linear-gradient(90deg,#ff3b3b,#ff8844);}
+    .bf.f{background:linear-gradient(90deg,var(--warn),#ffdd44);}
+    .bf.s{background:linear-gradient(90deg,var(--ac2),#44ffaa);}
+    /* MINIMAP */
+    .mm-wrap{display:flex;flex-direction:column;align-items:center;gap:7px;padding:10px;}
+    #minimap{border-radius:7px;border:1px solid var(--b2);display:block;}
+    .mcb{padding:3px 8px;font-family:var(--mono);font-size:10px;background:var(--s3);border:1px solid var(--b2);border-radius:4px;cursor:pointer;color:var(--txm);transition:.15s;}
+    .mcb:hover{color:var(--tx);border-color:var(--ac);}
+    /* BOT VISUAL */
+    .bpanel{display:grid;grid-template-columns:72px 1fr;gap:11px;align-items:start;}
+    .bl2{display:flex;flex-direction:column;align-items:center;gap:6px;}
+    .bhead{width:64px;height:64px;border-radius:8px;overflow:hidden;background:var(--s3);border:2px solid var(--b2);image-rendering:pixelated;}
+    .bhead img{width:100%;height:100%;object-fit:cover;display:block;image-rendering:pixelated;}
+    .cdir{font-family:var(--mono);font-size:9px;color:var(--txd);text-align:center;}
+    /* SLIDERS */
+    .hc{display:flex;flex-direction:column;gap:7px;}
+    .sr2{display:flex;align-items:center;gap:7px;}
+    .sr2 label{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--txm);width:34px;flex-shrink:0;}
+    input[type=range]{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--s3);outline:none;cursor:pointer;}
+    input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--ac);cursor:pointer;box-shadow:0 0 6px rgba(0,212,255,.4);}
+    .sv{font-family:var(--mono);font-size:10px;color:var(--ac);width:36px;text-align:right;flex-shrink:0;}
+    .dbs{display:flex;gap:4px;flex-wrap:wrap;margin-top:2px;}
+    .db2{padding:3px 7px;font-size:10px;font-family:var(--mono);background:var(--s3);border:1px solid var(--b2);border-radius:4px;cursor:pointer;color:var(--txm);transition:.15s;}
+    .db2:hover{border-color:var(--ac);color:var(--ac);}
+    .cbs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-top:6px;}
+    .cb{background:var(--s2);border:1px solid var(--b1);border-radius:5px;padding:6px 7px;text-align:center;}
+    .ca{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--txm);margin-bottom:2px;}
+    .cv{font-family:var(--mono);font-size:12px;}
+    /* DPAD */
+    .dp{display:grid;grid-template-columns:repeat(3,40px);grid-template-rows:repeat(3,40px);gap:3px;margin:0 auto;width:fit-content;}
+    .db{width:40px;height:40px;border:1px solid var(--b2);background:var(--s2);border-radius:6px;color:var(--txm);font-size:16px;cursor:pointer;transition:.1s;display:flex;align-items:center;justify-content:center;user-select:none;touch-action:manipulation;}
+    .db:hover,.db.p{border-color:var(--ac);color:var(--ac);background:rgba(0,212,255,.1);}
+    .db:active{transform:scale(.88);}
+    .de{width:40px;height:40px;}
+    /* WORLD VIEW */
+    .wv{position:relative;flex:1;overflow:hidden;background:#000;}
+    #worldCanvas{display:block;width:100%;height:100%;}
+    .wv-cross{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,.85);font-size:22px;pointer-events:none;text-shadow:1px 1px 3px rgba(0,0,0,.8);line-height:1;}
+    .wv-info{position:absolute;top:8px;left:8px;font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.75);text-shadow:1px 1px 2px #000;line-height:1.7;pointer-events:none;}
+    .wv-ctrl{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;}
+    .wv-btn{padding:6px 14px;font-family:var(--ui);font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.5);color:rgba(255,255,255,.8);border-radius:5px;cursor:pointer;transition:.15s;backdrop-filter:blur(4px);}
+    .wv-btn:hover{border-color:var(--ac);color:var(--ac);}
+    .wv-btn.on{border-color:var(--ac2);color:var(--ac2);}
+    .wv-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(7,10,15,.9);font-family:var(--mono);font-size:12px;color:var(--ac);}
     /* CHAT */
-    .chat-layout{display:flex;flex-direction:column;height:100%;overflow:hidden;padding:14px;gap:10px;}
-    .chat-messages{flex:1;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:3px;}
-    .chat-messages::-webkit-scrollbar{width:4px;}
-    .chat-messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
-    .chat-line{font-family:var(--font-mono);font-size:12px;line-height:1.6;word-break:break-word;}
-    .chat-time{color:var(--text-dim);font-size:10px;margin-right:6px;}
-    .chat-input-row{display:flex;gap:8px;}
-    .chat-input{flex:1;padding:9px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--font-mono);font-size:13px;outline:none;transition:border-color .15s;}
-    .chat-input:focus{border-color:var(--accent);}
-    .chat-input::placeholder{color:var(--text-dim);}
-    .btn-send{padding:9px 18px;background:var(--accent);color:var(--bg);border:none;border-radius:6px;font-family:var(--font-ui);font-weight:700;font-size:14px;letter-spacing:1px;cursor:pointer;transition:opacity .15s;}
-    .btn-send:hover{opacity:.85;}
-    .btn-send:disabled{background:var(--surface3);color:var(--text-dim);cursor:not-allowed;}
-
+    .cl{display:flex;flex-direction:column;height:100%;padding:11px;gap:7px;overflow:hidden;}
+    .cb2{flex:1;overflow-y:auto;background:var(--s1);border:1px solid var(--b1);border-radius:9px;padding:8px 12px;display:flex;flex-direction:column;gap:2px;}
+    .ch{font-family:var(--mono);font-size:11px;line-height:1.65;word-break:break-word;}
+    .ct{color:var(--txd);font-size:9px;margin-right:6px;}
+    .ci-row{display:flex;gap:6px;}
+    .ci{flex:1;padding:8px 12px;background:var(--s2);border:1px solid var(--b2);border-radius:6px;color:var(--tx);font-family:var(--mono);font-size:12px;outline:none;transition:.15s;}
+    .ci:focus{border-color:var(--ac);}
+    .ci::placeholder{color:var(--txd);}
+    .cs{padding:8px 14px;background:var(--ac);color:var(--bg);border:none;border-radius:6px;font-family:var(--ui);font-weight:700;font-size:13px;cursor:pointer;}
+    .qbs{display:flex;gap:5px;flex-wrap:wrap;}
+    .qb{padding:4px 10px;font-size:11px;font-family:var(--ui);font-weight:600;border:1px solid var(--b2);background:var(--s2);color:var(--txm);border-radius:4px;cursor:pointer;transition:.15s;}
+    .qb:hover{border-color:var(--ac);color:var(--ac);}
     /* INVENTORY */
-    .inv-layout{padding:16px;overflow-y:auto;flex:1;}
-    .inv-title{font-size:17px;font-weight:600;margin-bottom:14px;letter-spacing:1px;}
-    .inv-grid{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;max-width:540px;}
-    .inv-slot{aspect-ratio:1;background:var(--surface2);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:all .1s;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;padding:3px;}
-    .inv-slot:hover{border-color:var(--accent);background:rgba(0,212,255,.08);}
-    .inv-slot.filled{border-color:var(--surface3);}
-    .inv-slot.filled:hover{border-color:var(--accent);}
-    .slot-name{font-family:var(--font-mono);font-size:8px;color:var(--text-muted);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;}
-    .slot-count{position:absolute;bottom:2px;right:3px;font-family:var(--font-mono);font-size:8px;color:var(--warn);font-weight:700;}
-    .inv-actions{display:flex;gap:10px;margin-top:12px;}
-    .inv-empty{color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:20px 0;}
-
-    /* SECURITY */
-    .sec-layout{padding:14px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:14px;}
-    .sec-alerts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-    .alert-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
-    .alert-num{font-size:32px;font-weight:700;font-family:var(--font-mono);line-height:1;}
-    .alert-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-top:3px;}
-    .alert-card.danger .alert-num{color:var(--danger);}
-    .alert-card.warn .alert-num{color:var(--warn);}
-    .alert-card.ok .alert-num{color:var(--accent2);}
-    .sec-log{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;flex:1;}
-    .sec-log-header{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--border);background:var(--surface2);}
-    .sec-log-title{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);}
-    .sec-log-body{padding:6px;overflow-y:auto;max-height:280px;display:flex;flex-direction:column;gap:3px;}
-    .sec-row{display:flex;align-items:center;gap:10px;padding:5px 9px;border-radius:4px;font-family:var(--font-mono);font-size:11px;}
-    .sec-row.danger{background:rgba(255,68,68,.08);}
-    .sec-row.safe{background:rgba(0,255,136,.05);}
-    .tag{font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;letter-spacing:1px;flex-shrink:0;}
-    .tag-danger{background:rgba(255,68,68,.2);color:var(--danger);}
-    .tag-safe{background:rgba(0,255,136,.15);color:var(--accent2);}
-    .tag-unknown{background:rgba(255,255,255,.08);color:var(--text-muted);}
-    .sec-channel{flex:1;color:var(--text);}
-    .sec-time{color:var(--text-dim);font-size:10px;}
-
-    /* SYSLOG */
-    .syslog-layout{padding:14px;overflow-y:auto;flex:1;}
-    .syslog-body{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
-    .syslog-line{display:flex;align-items:flex-start;gap:9px;padding:5px 12px;border-bottom:1px solid rgba(48,54,61,.5);font-family:var(--font-mono);font-size:11px;}
-    .syslog-line:last-child{border-bottom:none;}
-    .syslog-ts{color:var(--text-dim);flex-shrink:0;font-size:10px;}
-    .syslog-level{flex-shrink:0;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:1px;}
-    .level-info{background:rgba(0,212,255,.1);color:var(--accent);}
-    .level-success{background:rgba(0,255,136,.1);color:var(--accent2);}
-    .level-warn{background:rgba(255,170,0,.1);color:var(--warn);}
-    .level-error,.level-danger{background:rgba(255,68,68,.1);color:var(--danger);}
-    .syslog-msg{color:var(--text);word-break:break-all;}
-
+    .il{padding:13px;display:flex;flex-direction:column;gap:11px;}
+    .is{display:flex;flex-direction:column;gap:5px;}
+    .isl{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--txd);}
+    .ig{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;max-width:536px;}
+    .ig5{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;max-width:300px;}
+    .isl2{aspect-ratio:1;background:var(--s2);border:1px solid var(--b1);border-radius:4px;cursor:pointer;transition:.12s;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;min-width:0;}
+    .isl2:hover{border-color:var(--ac);background:rgba(0,212,255,.07);}
+    .isl2.fi{border-color:rgba(45,55,68,.9);}
+    .isl2.sel{border-color:var(--warn);box-shadow:0 0 8px rgba(255,170,0,.2);}
+    .isl2 img{width:74%;height:74%;object-fit:contain;image-rendering:pixelated;display:block;}
+    .ict{position:absolute;bottom:2px;right:3px;font-family:var(--mono);font-size:8px;color:var(--warn);font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.9);}
+    .ihn{position:absolute;top:2px;left:3px;font-family:var(--mono);font-size:7px;color:var(--txd);}
+    .iinfo{font-family:var(--mono);font-size:11px;color:var(--txm);}
     /* MODULES */
-    .mod-layout{padding:16px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:14px;}
-    .mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
-    .mod-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
-    .mod-card-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);}
-    .mod-name{font-size:14px;font-weight:700;letter-spacing:1px;}
-    .mod-body{padding:12px 14px;display:flex;flex-direction:column;gap:8px;}
-    .mod-status{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);}
-    .mod-actions{display:flex;gap:7px;flex-wrap:wrap;}
-    .mod-btn{padding:5px 12px;font-family:var(--font-ui);font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);border-radius:5px;cursor:pointer;transition:all .15s;}
-    .mod-btn:hover{border-color:var(--accent);color:var(--accent);}
-    .mod-btn.active{border-color:var(--accent2);color:var(--accent2);background:rgba(0,255,136,.08);}
-    .mod-btn.danger{border-color:var(--danger);color:var(--danger);}
-    /* Quick commands */
-    .quick-cmds{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;}
-    .quick-title{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;}
-    .quick-grid{display:flex;gap:8px;flex-wrap:wrap;}
-    .quick-btn{padding:7px 16px;font-family:var(--font-ui);font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);border-radius:6px;cursor:pointer;transition:all .15s;}
-    .quick-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,.05);}
-    ::-webkit-scrollbar{width:4px;height:4px;}
-    ::-webkit-scrollbar-track{background:transparent;}
-    ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+    .ml{padding:13px;display:flex;flex-direction:column;gap:11px;}
+    .qcp{background:var(--s1);border:1px solid var(--b1);border-radius:10px;overflow:hidden;}
+    .qcg{display:flex;gap:5px;flex-wrap:wrap;padding:9px 12px;}
+    .qcb{padding:5px 12px;font-family:var(--ui);font-size:12px;font-weight:600;text-transform:uppercase;border:1px solid var(--b2);background:var(--s2);color:var(--txm);border-radius:5px;cursor:pointer;transition:.15s;}
+    .qcb:hover{border-color:var(--ac);color:var(--ac);}
+    .qcir{display:flex;gap:5px;padding:0 12px 9px;}
+    .qci{flex:1;padding:6px 10px;background:var(--s3);border:1px solid var(--b2);border-radius:5px;color:var(--tx);font-family:var(--mono);font-size:11px;outline:none;}
+    .qci:focus{border-color:var(--ac);}
+    .qcse{padding:6px 12px;background:var(--ac);color:var(--bg);border:none;border-radius:5px;font-family:var(--ui);font-weight:700;font-size:12px;cursor:pointer;}
+    .modg{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:10px;}
+    .mc{background:var(--s1);border:1px solid var(--b1);border-radius:10px;overflow:hidden;}
+    .mch{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--s2);border-bottom:1px solid var(--b1);}
+    .mcn{font-size:13px;font-weight:700;}
+    .mcb{padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
+    .mcs{font-family:var(--mono);font-size:10px;color:var(--txm);line-height:1.6;}
+    .mca{display:flex;gap:5px;flex-wrap:wrap;}
+    .mb{padding:4px 10px;font-size:11px;font-family:var(--ui);font-weight:600;border:1px solid var(--b2);background:var(--s2);color:var(--txm);border-radius:4px;cursor:pointer;transition:.15s;text-transform:uppercase;}
+    .mb:hover{border-color:var(--ac);color:var(--ac);}
+    .mb.active{border-color:var(--ac2);color:var(--ac2);background:rgba(0,255,136,.07);}
+    .mb.on{border-color:var(--ac);color:var(--ac);}
+    .tog{width:36px;height:20px;background:var(--s3);border-radius:10px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;}
+    .tog.on{background:var(--ac);}
+    .tog::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,.4);}
+    .tog.on::after{transform:translateX(16px);}
+    .ti{padding:4px 8px;background:var(--s3);border:1px solid var(--b2);border-radius:4px;color:var(--tx);font-family:var(--mono);font-size:11px;outline:none;width:100%;}
+    .ti:focus{border-color:var(--ac);}
+    /* SECURITY */
+    .secl{padding:11px;display:flex;flex-direction:column;gap:11px;}
+    .seca{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+    .secc{background:var(--s1);border:1px solid var(--b1);border-radius:9px;padding:11px;text-align:center;}
+    .secn{font-size:26px;font-weight:700;font-family:var(--mono);line-height:1;}
+    .sece{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--txm);margin-top:3px;}
+    .secc.d .secn{color:var(--red);}
+    .secc.w .secn{color:var(--warn);}
+    .secc.s .secn{color:var(--ac2);}
+    .seclb{padding:5px;max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;}
+    .secr{display:flex;align-items:center;gap:7px;padding:4px 8px;border-radius:4px;font-family:var(--mono);font-size:10px;}
+    .secr.rd{background:rgba(255,59,59,.07);}
+    .secr.rw{background:rgba(255,170,0,.06);}
+    .secr.rs{background:rgba(0,255,136,.04);}
+    .stg{font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;flex-shrink:0;font-family:var(--mono);}
+    .td{background:rgba(255,59,59,.2);color:var(--red);}
+    .tw{background:rgba(255,170,0,.2);color:var(--warn);}
+    .ts{background:rgba(0,255,136,.15);color:var(--ac2);}
+    .tu{background:rgba(255,255,255,.07);color:var(--txm);}
+    .sch{flex:1;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .sca{color:var(--txd);font-size:9px;flex-shrink:0;}
+    .scn{color:var(--txd);font-size:9px;flex-shrink:0;min-width:18px;text-align:right;}
+    .scs{color:var(--txd);font-size:9px;flex-shrink:0;}
+    /* SYSLOG */
+    .sysb{background:var(--s1);border:1px solid var(--b1);border-radius:9px;overflow:hidden;}
+    .sysl{display:flex;align-items:flex-start;gap:7px;padding:5px 10px;border-bottom:1px solid rgba(37,45,56,.5);font-family:var(--mono);font-size:10px;}
+    .sysl:last-child{border-bottom:none;}
+    .syst{color:var(--txd);flex-shrink:0;font-size:9px;}
+    .syslv{flex-shrink:0;padding:1px 5px;border-radius:3px;font-size:8px;font-weight:700;}
+    .li{background:rgba(0,212,255,.1);color:var(--ac);}
+    .ls{background:rgba(0,255,136,.1);color:var(--ac2);}
+    .lw{background:rgba(255,170,0,.1);color:var(--warn);}
+    .le,.ld{background:rgba(255,59,59,.1);color:var(--red);}
+    .sysm{color:var(--tx);word-break:break-all;line-height:1.5;}
+    /* MOBILE */
+    @media(max-width:768px){
+      .app{grid-template-columns:1fr;grid-template-areas:"hd""mn";}
+      aside{position:fixed;top:0;left:0;bottom:0;width:240px;transform:translateX(-100%);z-index:25;padding-top:var(--sh);}
+      aside.open{transform:translateX(0);}
+      .ov.show{display:block!important;}
+      .burger{display:flex;}
+      .pills .pill:nth-child(n+3){display:none;}
+      .mg{grid-template-columns:1fr!important;padding:9px;}
+      .sr{grid-template-columns:1fr 1fr!important;}
+      .modg{grid-template-columns:1fr;}
+      .btn.hm{display:none;}
+    }
+    @media(max-width:480px){
+      .pills .pill{display:none;}
+      .pills .pill:first-child{display:flex;}
+      .sr{grid-template-columns:1fr 1fr;}
+    }
+    ::-webkit-scrollbar{width:3px;height:3px;}
+    ::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px;}
   </style>
 </head>
 <body>
-
+<div class="app">
 <header>
-  <div class="logo"><div class="logo-hex"></div>MC<span>BOT</span></div>
-  <div class="header-pills">
-    <div class="pill"><span class="lbl">❤</span><span id="hpVal">—</span></div>
-    <div class="pill"><span class="lbl">🍖</span><span id="foodVal">—</span></div>
-    <div class="pill"><span class="lbl">⏱</span><span id="uptimeVal">00:00</span></div>
-    <div class="pill"><span class="lbl">💬</span><span id="msgVal">0</span></div>
+  <button class="burger" onclick="toggleSB()"><span></span><span></span><span></span></button>
+  <div class="logo"><div class="logo-h"></div>MC<span>BOT</span></div>
+  <div class="pills">
+    <div class="pill"><span class="l">❤</span><span id="hpV">—</span></div>
+    <div class="pill"><span class="l">🍖</span><span id="fdV">—</span></div>
+    <div class="pill"><span class="l">⏱</span><span id="utV">00:00</span></div>
+    <div class="pill"><span class="l">💬</span><span id="msgV">0</span></div>
   </div>
-  <div class="header-right">
-    <div class="status-badge"><div class="dot off" id="dot"></div><span id="statusTxt" style="font-family:var(--font-mono);font-size:12px">OFFLINE</span></div>
-    <a href="/" class="btn-sm ghost">← Account</a>
-    <button class="btn-sm danger" onclick="socket.emit('bot:disconnect')">Disconnetti</button>
+  <div class="hr">
+    <div class="sbdg"><div class="dot of" id="dot"></div><span id="stxt" style="font-family:var(--mono);font-size:11px">OFFLINE</span></div>
+    <a href="/" class="btn g hm">← Home</a>
+    <button class="btn r" onclick="socket.emit('bot:disconnect')">Disco.</button>
   </div>
 </header>
-
-<aside>
-  <div class="nav-section">Pannelli</div>
-  <div class="nav-item active" onclick="goto('monitor')"><span class="ic">📊</span>Monitor</div>
-  <div class="nav-item" onclick="goto('chat')"><span class="ic">💬</span>Chat</div>
-  <div class="nav-item" onclick="goto('inventory')"><span class="ic">🎒</span>Inventario</div>
-  <div class="nav-section">Analisi</div>
-  <div class="nav-item" onclick="goto('modules')"><span class="ic">🧩</span>Moduli</div>
-  <div class="nav-item" onclick="goto('security')"><span class="ic">🔒</span>Sicurezza<span class="nav-badge" id="secBadge" style="display:none">0</span></div>
-  <div class="nav-item" onclick="goto('syslog')"><span class="ic">📋</span>Log Sistema</div>
-  <div class="sidebar-footer">
-    <div class="player-card">
-      <div class="player-avatar" id="playerAvatar">B</div>
-      <div><div class="player-name" id="playerName">—</div><div class="player-server" id="playerServer">Non connesso</div></div>
+<div class="ov" id="ov" onclick="closeSB()" style="display:none"></div>
+<aside id="sb">
+  <div class="ns">Controllo</div>
+  <div class="ni active" data-tab="monitor" onclick="goto('monitor',this)"><span class="ic">📊</span>Monitor</div>
+  <div class="ni" data-tab="visual" onclick="goto('visual',this)"><span class="ic">👁</span>Visuale</div>
+  <div class="ni" data-tab="chat" onclick="goto('chat',this)"><span class="ic">💬</span>Chat</div>
+  <div class="ni" data-tab="inventory" onclick="goto('inventory',this)"><span class="ic">🎒</span>Inventario</div>
+  <div class="ns">Automazione</div>
+  <div class="ni" data-tab="modules" onclick="goto('modules',this)"><span class="ic">🧩</span>Moduli</div>
+  <div class="ni" data-tab="security" onclick="goto('security',this)"><span class="ic">🔒</span>Sicurezza<span class="nbdg" id="secBadge" style="display:none">0</span></div>
+  <div class="ni" data-tab="syslog" onclick="goto('syslog',this)"><span class="ic">📋</span>Log</div>
+  <div class="sft">
+    <div class="pc">
+      <div class="pav" id="pav"><img id="pavImg" src="" alt=""></div>
+      <div><div class="pn" id="pname">—</div><div class="ps" id="pserver">Non connesso</div></div>
     </div>
   </div>
 </aside>
-
 <main>
-  <!-- MONITOR -->
-  <div class="tab-panel active" id="tab-monitor">
-    <div class="monitor-grid">
-      <div class="stats-row">
-        <div class="stat-card"><div class="stat-icon">📶</div><div class="stat-info"><div class="num" id="statState">OFFLINE</div><div class="lbl">Stato</div></div></div>
-        <div class="stat-card"><div class="stat-icon">🔄</div><div class="stat-info"><div class="num" id="statRecon">0</div><div class="lbl">Riconnessioni</div></div></div>
-        <div class="stat-card"><div class="stat-icon">💬</div><div class="stat-info"><div class="num" id="statMsgs">0</div><div class="lbl">Messaggi</div></div></div>
-        <div class="stat-card"><div class="stat-icon">⚡</div><div class="stat-info"><div class="num" id="statKicks">0</div><div class="lbl">Kick</div></div></div>
+
+<!-- ══ MONITOR ══ -->
+<div class="tp active" id="tab-monitor">
+<div class="sc"><div class="mg">
+  <div class="sr">
+    <div class="sc2"><div class="si">📶</div><div><div class="sn" id="statSt">OFFLINE</div><div class="sl">Stato</div></div></div>
+    <div class="sc2"><div class="si">🔄</div><div><div class="sn" id="statRe">0</div><div class="sl">Riconn.</div></div></div>
+    <div class="sc2"><div class="si">💬</div><div><div class="sn" id="statMs">0</div><div class="sl">Messaggi</div></div></div>
+    <div class="sc2"><div class="si">⚡</div><div><div class="sn" id="statKi">0</div><div class="sl">Kick</div></div></div>
+  </div>
+  <!-- LEFT: vitals + dpad -->
+  <div style="display:flex;flex-direction:column;gap:11px">
+    <div class="w">
+      <div class="wh"><span class="wt">❤ Vitali</span></div>
+      <div class="wb">
+        <div class="bg"><div class="bl"><span class="n">Salute</span><span id="hpN">—/20</span></div><div class="bt"><div class="bf h" id="hpB" style="width:0%"></div></div></div>
+        <div class="bg"><div class="bl"><span class="n">Fame</span><span id="fdN">—/20</span></div><div class="bt"><div class="bf f" id="fdB" style="width:0%"></div></div></div>
+        <div class="bg" style="margin-bottom:0"><div class="bl"><span class="n">Satur.</span><span id="stN">—</span></div><div class="bt"><div class="bf s" id="stB" style="width:0%"></div></div></div>
       </div>
-      <div class="widget">
-        <div class="widget-header"><span class="widget-title">Stato Vitale</span></div>
-        <div class="widget-body">
-          <div class="bar-group"><div class="bar-label"><span class="name">❤ Salute</span><span id="hpNum">—</span></div><div class="bar-track"><div class="bar-fill health" id="hpBar" style="width:0%"></div></div></div>
-          <div class="bar-group"><div class="bar-label"><span class="name">🍖 Fame</span><span id="foodNum">—</span></div><div class="bar-track"><div class="bar-fill food" id="foodBar" style="width:0%"></div></div></div>
-          <div class="bar-group"><div class="bar-label"><span class="name">✨ Saturazione</span><span id="satNum">—</span></div><div class="bar-track"><div class="bar-fill sat" id="satBar" style="width:0%"></div></div></div>
+    </div>
+    <div class="w">
+      <div class="wh"><span class="wt">🕹 D-Pad</span></div>
+      <div class="wb">
+        <div class="dp">
+          <div class="de"></div>
+          <div class="db" id="dbF" onmousedown="hc('forward',1)" onmouseup="hc('forward',0)" onmouseleave="hc('forward',0)" ontouchstart="hc('forward',1)" ontouchend="hc('forward',0)">↑</div>
+          <div class="de"></div>
+          <div class="db" id="dbL" onmousedown="hc('left',1)"    onmouseup="hc('left',0)"    onmouseleave="hc('left',0)"    ontouchstart="hc('left',1)"    ontouchend="hc('left',0)">←</div>
+          <div class="db" id="dbJ" onmousedown="hc('jump',1)"    onmouseup="hc('jump',0)"    onmouseleave="hc('jump',0)"    ontouchstart="hc('jump',1)"    ontouchend="hc('jump',0)" style="font-size:11px">↑↑</div>
+          <div class="db" id="dbR" onmousedown="hc('right',1)"   onmouseup="hc('right',0)"   onmouseleave="hc('right',0)"   ontouchstart="hc('right',1)"   ontouchend="hc('right',0)">→</div>
+          <div class="de"></div>
+          <div class="db" id="dbB" onmousedown="hc('back',1)"    onmouseup="hc('back',0)"    onmouseleave="hc('back',0)"    ontouchstart="hc('back',1)"    ontouchend="hc('back',0)">↓</div>
+          <div class="de"></div>
+        </div>
+        <div style="display:flex;gap:5px;margin-top:8px">
+          <button class="mb" style="flex:1;text-align:center" onmousedown="hc('sneak',1)" onmouseup="hc('sneak',0)">Sneak</button>
+          <button class="mb" id="spBtn" style="flex:1;text-align:center" onclick="toggleSprint()">Sprint</button>
         </div>
       </div>
-      <div class="widget">
-        <div class="widget-header"><span class="widget-title">Posizione</span></div>
-        <div class="widget-body">
-          <div class="coords-grid">
-            <div class="coord-box"><div class="coord-axis" style="color:#ff6b6b">X</div><div class="coord-val" id="cx">—</div></div>
-            <div class="coord-box"><div class="coord-axis" style="color:#51cf66">Y</div><div class="coord-val" id="cy">—</div></div>
-            <div class="coord-box"><div class="coord-axis" style="color:#339af0">Z</div><div class="coord-val" id="cz">—</div></div>
+    </div>
+  </div>
+  <!-- CENTER: bot + sliders -->
+  <div style="display:flex;flex-direction:column;gap:11px">
+    <div class="w">
+      <div class="wh">
+        <span class="wt">🤖 Bot / Sguardo</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--txd)" id="lookD">—</span>
+      </div>
+      <div class="wb">
+        <div class="bpanel">
+          <div class="bl2">
+            <div class="bhead"><img id="bhead" src="" alt="bot"></div>
+            <canvas id="compass" width="50" height="50" style="border-radius:50%"></canvas>
+            <div class="cdir" id="cdir">—</div>
           </div>
-          <div style="margin-top:10px;font-family:var(--font-mono);font-size:10px;color:var(--text-muted);text-align:center" id="lookInfo">Yaw: — | Pitch: —</div>
-        </div>
-      </div>
-      <div class="widget">
-        <div class="widget-header"><span class="widget-title">Controllo</span></div>
-        <div class="widget-body">
-          <div class="dpad">
-            <div class="dpad-empty"></div><div class="dpad-btn" onmousedown="ctrl('forward',500)">↑</div><div class="dpad-empty"></div>
-            <div class="dpad-btn" onmousedown="ctrl('left',500)">←</div><div class="dpad-btn" onmousedown="ctrl('jump',200)" style="font-size:13px">↑↑</div><div class="dpad-btn" onmousedown="ctrl('right',500)">→</div>
-            <div class="dpad-empty"></div><div class="dpad-btn" onmousedown="ctrl('back',500)">↓</div><div class="dpad-empty"></div>
+          <div class="hc">
+            <div class="sr2">
+              <label>YAW</label>
+              <input type="range" id="slY" min="-180" max="180" value="0" oninput="onYI(this.value)" onchange="doLook()">
+              <span class="sv" id="yv">0°</span>
+            </div>
+            <div class="sr2">
+              <label>PITCH</label>
+              <input type="range" id="slP" min="-90" max="90" value="0" oninput="onPI(this.value)" onchange="doLook()">
+              <span class="sv" id="pv">0°</span>
+            </div>
+            <div class="dbs">
+              <button class="db2" onclick="setLook(0,0)"   title="Sud">S</button>
+              <button class="db2" onclick="setLook(-90,0)" title="Est">E</button>
+              <button class="db2" onclick="setLook(180,0)" title="Nord">N</button>
+              <button class="db2" onclick="setLook(90,0)"  title="Ovest">O</button>
+              <button class="db2" onclick="setLook(0,-90)" title="Su">↑Su</button>
+              <button class="db2" onclick="setLook(0,90)"  title="Giù">↓Giù</button>
+            </div>
+            <div class="cbs">
+              <div class="cb"><div class="ca" style="color:#ff6060">X</div><div class="cv" id="cx">—</div></div>
+              <div class="cb"><div class="ca" style="color:#44ee77">Y</div><div class="cv" id="cy">—</div></div>
+              <div class="cb"><div class="ca" style="color:#4499ff">Z</div><div class="cv" id="cz">—</div></div>
+            </div>
           </div>
-          <div style="height:10px"></div>
-          <button class="btn-sm ghost" style="width:100%;justify-content:center" onmousedown="ctrl('sneak',600)">Accovaccia</button>
-        </div>
-      </div>
-      <div class="widget">
-        <div class="widget-header"><span class="widget-title">Anti-AFK</span></div>
-        <div class="widget-body">
-          <div class="toggle-row"><span class="toggle-label">Stato</span><div class="toggle" id="afkToggle" onclick="toggleAfk()"></div></div>
-          <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;font-family:var(--font-mono)">Strategia:</div>
-          <div class="strategy-btns">
-            <button class="strategy-btn active" id="strat-look" onclick="setStrat('look')">LOOK</button>
-            <button class="strategy-btn" id="strat-walk" onclick="setStrat('walk')">WALK</button>
-            <button class="strategy-btn" id="strat-jump" onclick="setStrat('jump')">JUMP</button>
-            <button class="strategy-btn" id="strat-combined" onclick="setStrat('combined')">COMBINED</button>
-          </div>
         </div>
       </div>
     </div>
   </div>
-
-  <!-- CHAT -->
-  <div class="tab-panel" id="tab-chat">
-    <div class="chat-layout">
-      <div class="chat-messages" id="chatBox"></div>
-      <div class="chat-input-row">
-        <input class="chat-input" id="chatInput" placeholder="Scrivi un messaggio o /comando..." maxlength="256" onkeydown="chatKey(event)">
-        <button class="btn-send" id="btnSend" onclick="sendChat()">INVIA</button>
-      </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn-sm ghost" onclick="quickCmd('/login ')" title="Invia /login password">🔑 /login</button>
-        <button class="btn-sm ghost" onclick="quickCmd('/register ')" title="Invia /register">📝 /register</button>
-        <button class="btn-sm ghost" onclick="quickCmd('/spawn')" title="Vai allo spawn">🏠 /spawn</button>
-        <button class="btn-sm ghost" onclick="quickCmd('/tpa ')" title="Teleport">/tpa</button>
+  <!-- RIGHT: minimap -->
+  <div class="w" style="grid-row:2/4">
+    <div class="wh">
+      <span class="wt">🗺 Radar</span>
+      <div style="display:flex;gap:4px;align-items:center">
+        <button class="mcb" onclick="mmZ(-1)">−</button>
+        <span class="mcb" id="mmZL" style="cursor:default;min-width:46px;text-align:center">2b/px</span>
+        <button class="mcb" onclick="mmZ(1)">+</button>
+        <button class="mcb" onclick="resetTrail()">↺</button>
       </div>
     </div>
-  </div>
-
-  <!-- INVENTORY -->
-  <div class="tab-panel" id="tab-inventory">
-    <div class="inv-layout">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <div class="inv-title" id="invTitle">Inventario</div>
-        <button class="btn-sm ghost" onclick="socket.emit('inventory:refresh')">↻ Aggiorna</button>
-      </div>
-      <div class="inv-grid" id="invGrid"><div class="inv-empty">Inventario vuoto o bot non connesso</div></div>
-      <div class="inv-actions">
-        <button class="btn-sm ghost" onclick="socket.emit('inventory:close')">Chiudi Finestra</button>
-      </div>
+    <div class="mm-wrap">
+      <canvas id="minimap" width="195" height="195"></canvas>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--txm);text-align:center" id="mcoords">X: — | Y: — | Z: —</div>
     </div>
   </div>
+</div></div>
+</div>
 
-  <!-- SECURITY -->
-  <div class="tab-panel" id="tab-security">
-    <div class="sec-layout">
-      <div class="sec-alerts">
-        <div class="alert-card danger"><div class="alert-num" id="alertDanger">0</div><div class="alert-lbl">🚨 Sospetti</div></div>
-        <div class="alert-card warn"><div class="alert-num" id="alertUnknown">0</div><div class="alert-lbl">⚠ Sconosciuti</div></div>
-        <div class="alert-card ok"><div class="alert-num" id="alertSafe">0</div><div class="alert-lbl">✅ Sicuri</div></div>
-      </div>
-      <div class="sec-log">
-        <div class="sec-log-header"><span class="sec-log-title">Pacchetti Monitorati</span><button class="btn-sm ghost" onclick="clearSec()">Reset</button></div>
-        <div class="sec-log-body" id="secLog"></div>
+<!-- ══ VISUALE ══ -->
+<div class="tp" id="tab-visual">
+  <div class="wv">
+    <canvas id="worldCanvas"></canvas>
+    <div class="wv-cross">+</div>
+    <div class="wv-info" id="wvInfo">
+      <div id="wvPos">Pos: —</div>
+      <div id="wvDir">Dir: —</div>
+      <div id="wvBlocks">Blocchi: —</div>
+      <div id="wvFps">FPS: —</div>
+    </div>
+    <div class="wv-loading" id="wvLoading">
+      <div style="text-align:center">
+        <div style="font-size:24px;margin-bottom:8px">👁</div>
+        <div>Seleziona la tab Visuale per avviare il rendering</div>
+        <div style="color:var(--txm);margin-top:4px;font-size:10px">Richiede bot connesso</div>
       </div>
     </div>
-  </div>
-
-  <!-- MODULES -->
-  <div class="tab-panel" id="tab-modules">
-    <div class="mod-layout">
-      <div class="quick-cmds">
-        <div class="quick-title">Comandi Rapidi</div>
-        <div class="quick-grid" id="quickCmds">
-          <button class="quick-btn" onclick="sendCmd('/spawn')">🏠 /spawn</button>
-          <button class="quick-btn" onclick="promptCmd('/tpa ')">→ /tpa</button>
-          <button class="quick-btn" onclick="promptCmd('/login ')">🔑 /login</button>
-          <button class="quick-btn" onclick="promptCmd('/register ')">📝 /register</button>
-          <button class="quick-btn" onclick="sendCmd('/help')">❓ /help</button>
-          <button class="quick-btn" onclick="promptCmd('/msg ')">💬 /msg</button>
-        </div>
-      </div>
-      <div id="modGrid" class="mod-grid"></div>
+    <div class="wv-ctrl">
+      <button class="wv-btn" onclick="requestWorld()">🔄 Aggiorna</button>
+      <button class="wv-btn" id="autoBtn" onclick="toggleAutoWorld()">Auto: OFF</button>
+      <span style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.5)" id="wvScale">16 blocchi</span>
     </div>
   </div>
+</div>
 
-  <!-- SYSLOG -->
-  <div class="tab-panel" id="tab-syslog">
-    <div class="syslog-layout"><div class="syslog-body" id="syslogBody"></div></div>
+<!-- ══ CHAT ══ -->
+<div class="tp" id="tab-chat">
+  <div class="cl">
+    <div class="cb2" id="chatBox"></div>
+    <div class="ci-row">
+      <input class="ci" id="chatInput" placeholder="Messaggio o /comando..." maxlength="256" onkeydown="chatKey(event)">
+      <button class="cs" onclick="sendChat()">INVIA</button>
+    </div>
+    <div class="qbs">
+      <button class="qb" onclick="qcmd('/login ')">🔑 /login</button>
+      <button class="qb" onclick="qcmd('/register ')">📝 /register</button>
+      <button class="qb" onclick="socket.emit('chat:send','/spawn')">🏠 /spawn</button>
+      <button class="qb" onclick="qcmd('/tpa ')">→ /tpa</button>
+      <button class="qb" onclick="qcmd('/home ')">🏡 /home</button>
+      <button class="qb" onclick="socket.emit('chat:send','/list')">👥 /list</button>
+    </div>
   </div>
+</div>
+
+<!-- ══ INVENTORY ══ -->
+<div class="tp" id="tab-inventory">
+<div class="sc"><div class="il">
+  <div style="display:flex;align-items:center;justify-content:space-between">
+    <div style="font-size:16px;font-weight:600" id="invTitle">Inventario</div>
+    <div style="display:flex;gap:5px">
+      <button class="btn g" onclick="socket.emit('inventory:refresh')">↻</button>
+      <button class="btn g" onclick="socket.emit('inventory:close')">✕ Chiudi</button>
+    </div>
+  </div>
+  <div class="is"><div class="isl">🔥 Hotbar (0–8)</div><div class="ig" id="hotbarG"></div></div>
+  <div class="is"><div class="isl">🎒 Inventario principale (9–35)</div><div class="ig" id="mainG"></div></div>
+  <div class="is"><div class="isl">🛡 Armatura + Offhand</div><div class="ig5" id="armorG"></div></div>
+  <div class="is" id="customS" style="display:none"><div class="isl" id="customL">📦 Finestra</div><div class="ig" id="customG"></div></div>
+  <div class="iinfo" id="invInfo">—</div>
+</div></div>
+</div>
+
+<!-- ══ MODULES ══ -->
+<div class="tp" id="tab-modules">
+<div class="sc"><div class="ml">
+  <div class="qcp">
+    <div class="wh" style="background:var(--s2)"><span class="wt">⚡ Comandi Rapidi</span></div>
+    <div class="qcg">
+      <button class="qcb" onclick="sc('/spawn')">🏠 /spawn</button>
+      <button class="qcb" onclick="pc('/tpa ')">→ /tpa</button>
+      <button class="qcb" onclick="pc('/home ')">🏡 /home</button>
+      <button class="qcb" onclick="pc('/msg ')">💬 /msg</button>
+      <button class="qcb" onclick="sc('/list')">👥 /list</button>
+      <button class="qcb" onclick="pc('/kit ')">📦 /kit</button>
+      <button class="qcb" onclick="sc('/help')">❓ /help</button>
+      <button class="qcb" onclick="pc('/warp ')">🌀 /warp</button>
+      <button class="qcb" onclick="pc('/pay ')">💰 /pay</button>
+      <button class="qcb" onclick="sc('/balance')">💳 /balance</button>
+      <button class="qcb" onclick="pc('/login ')">🔑 /login</button>
+      <button class="qcb" onclick="pc('/register ')">📝 /register</button>
+    </div>
+    <div class="qcir">
+      <input class="qci" id="qcIn" placeholder="/comando..." onkeydown="if(event.key==='Enter')sendQC()">
+      <button class="qcse" onclick="sendQC()">INVIA</button>
+    </div>
+  </div>
+  <div class="modg" id="modGrid"></div>
+</div></div>
+</div>
+
+<!-- ══ SECURITY ══ -->
+<div class="tp" id="tab-security">
+<div class="sc"><div class="secl">
+  <div class="seca">
+    <div class="secc d"><div class="secn" id="aD">0</div><div class="sece">🚨 Sospetti</div></div>
+    <div class="secc w"><div class="secn" id="aU">0</div><div class="sece">⚠ Sconosciuti</div></div>
+    <div class="secc s"><div class="secn" id="aS">0</div><div class="sece">✅ Sicuri</div></div>
+  </div>
+  <div class="w">
+    <div class="wh">
+      <span class="wt">Pacchetti</span>
+      <button class="btn g" onclick="clearSec()" style="font-size:10px;padding:2px 7px">Reset</button>
+    </div>
+    <div class="seclb" id="secLog"></div>
+  </div>
+</div></div>
+</div>
+
+<!-- ══ LOG ══ -->
+<div class="tp" id="tab-syslog">
+<div class="sc"><div style="padding:11px">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:7px">
+    <button class="btn g" onclick="document.getElementById('syslogB').innerHTML=''">Pulisci</button>
+  </div>
+  <div class="sysb" id="syslogB"></div>
+</div></div>
+</div>
+
 </main>
+</div>
 
+<!-- Three.js r128 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script>
-const socket = io({ reconnection: true, reconnectionDelay: 1000 });
-let currentTab = 'monitor';
-let afkActive = false;
-let afkStrategy = 'look';
-let botOnline = false;
-let uptimeStart = null;
-let secSuspicious = 0;
-
-// ── NAV ───────────────────────────────────────────────────────────
-function goto(tab) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('tab-' + tab).classList.add('active');
-  event.currentTarget.classList.add('active');
-  currentTab = tab;
-  if (tab === 'security') { socket.emit('security:getlog'); document.getElementById('secBadge').style.display='none'; secSuspicious=0; }
-  if (tab === 'inventory') { socket.emit('inventory:refresh'); }
+// ══════════════════════════════════════════════
+// ITEM CDN (inventory images)
+// ══════════════════════════════════════════════
+const MC_VER = '1.21.4';
+function makeCDNs(name) {
+  const n = name.replace('minecraft:','').toLowerCase();
+  return [
+    `https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/${MC_VER}/assets/minecraft/textures/item/${n}.png`,
+    `https://raw.githubusercontent.com/InventivetalentDev/minecraft-assets/${MC_VER}/assets/minecraft/textures/block/${n}.png`,
+    `https://mc-heads.net/item/${n}/32`,
+  ];
+}
+function makeItemImg(name) {
+  const img = document.createElement('img');
+  const cdns = makeCDNs(name); let idx = 0;
+  img.src = cdns[0];
+  img.onerror = () => { idx++; if(idx<cdns.length) img.src=cdns[idx]; else img.remove(); };
+  return img;
 }
 
-// ── SOCKET EVENTS ─────────────────────────────────────────────────
-socket.on('connect', () => {
-  console.log('Socket connesso, richiedo stato...');
-  socket.emit('bot:getstats');
-  socket.emit('security:getlog');
-});
+// ══════════════════════════════════════════════
+// BLOCK COLORS (for 3D view)
+// ══════════════════════════════════════════════
+const BC = {
+  grass_block:0x5d9e3a, dirt:0x8B6344, coarse_dirt:0x7a5030,
+  stone:0x808080, cobblestone:0x777777, mossy_cobblestone:0x6a7755,
+  andesite:0x8a8a8a, diorite:0xcccccc, granite:0xaa7755,
+  sand:0xe8d6a0, gravel:0x888878, clay:0xa4a8b4,
+  grass:0x44bb44, fern:0x33aa33, dead_bush:0x8B7355,
+  oak_log:0x8B6E3B, birch_log:0xddd9c4, spruce_log:0x5c3d1e,
+  jungle_log:0x7a5c30, oak_leaves:0x2d7a1a, birch_leaves:0x559b2e,
+  oak_planks:0xa87040, birch_planks:0xdbd0a0, spruce_planks:0x7a5c2e,
+  water:0x2855a0, lava:0xff5500, ice:0x9dc7e8, snow:0xffffff, snow_block:0xf0f0f0,
+  bedrock:0x444444, obsidian:0x2a1f4a,
+  coal_ore:0x555555, iron_ore:0x8b7055, gold_ore:0xaa8822,
+  diamond_ore:0x4499bb, emerald_ore:0x22aa44, redstone_ore:0x883333,
+  lapis_ore:0x2244aa, copper_ore:0x887755,
+  iron_block:0xcccccc, gold_block:0xffd700, diamond_block:0x44ccdd,
+  emerald_block:0x22cc55, coal_block:0x333333,
+  stone_bricks:0x888888, mossy_stone_bricks:0x7a8a6a,
+  glass:0xbbddee, glass_pane:0xaaccdd,
+  white_wool:0xffffff, red_wool:0xcc3333, blue_wool:0x3344cc,
+  green_wool:0x33aa33, yellow_wool:0xddcc22,
+  white_concrete:0xf0f0f0, red_concrete:0xcc2222, blue_concrete:0x2244bb,
+  netherrack:0x7d2020, nether_bricks:0x3a1f1f, soul_sand:0x5c4a2a,
+  glowstone:0xffd060, nether_quartz_ore:0xaa9999,
+  end_stone:0xddddb0, end_stone_bricks:0xcfcf9a,
+  purpur_block:0xaa66aa, chorus_plant:0x663366,
+  terracotta:0xbb7755,
+  white_terracotta:0xd6c8be, orange_terracotta:0xc87843,
+  chest:0xa07030, trapped_chest:0xa06030,
+  crafting_table:0xa07030, furnace:0x888888,
+  bricks:0xaa6655, bookshelf:0xddc08a,
+  sponge:0xdddd44, wet_sponge:0x99aa44,
+  hay_block:0xddcc22, pumpkin:0xee8822, melon:0x77aa44,
+  cactus:0x338833, bamboo:0x88bb44,
+  torch:0xffdd44, lantern:0xffcc44,
+  _default:0x888888
+};
+function blockColor(name) {
+  const n = name.replace('minecraft:','');
+  if (BC[n]) return BC[n];
+  let h = 0; for (const c of n) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return (((h & 0xffffff) >>> 0) | 0x303030) & 0xffffff;
+}
+
+// ══════════════════════════════════════════════
+// THREE.JS WORLD VIEW
+// ══════════════════════════════════════════════
+let three = null;     // Three.js scene/renderer
+let worldData = null; // last received world data
+let autoWorld = false;
+let lastWorldPos = null;
+let renderAF = null;
+let worldActive = false;
+let fpsCount = 0, fpsLast = Date.now(), fpsVal = 0;
+let worldBlockCount = 0;
+
+function initThree() {
+  if (three) return;
+  const canvas = document.getElementById('worldCanvas');
+  if (!canvas) return;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x6fa8d0);
+  scene.fog = new THREE.FogExp2(0x6fa8d0, 0.035);
+
+  const camera = new THREE.PerspectiveCamera(70, 1, 0.05, 64);
+  camera.rotation.order = 'YXZ';
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  renderer.shadowMap.enabled = false;
+
+  // Lighting
+  const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+  scene.add(ambient);
+  const sun = new THREE.DirectionalLight(0xfff8e0, 0.8);
+  sun.position.set(0.6, 1, 0.4); scene.add(sun);
+  // Bounce light from below
+  const fill = new THREE.DirectionalLight(0x8888ff, 0.15);
+  fill.position.set(0, -1, 0); scene.add(fill);
+
+  // Sky gradient using a large sphere
+  const skyGeo = new THREE.SphereGeometry(50, 8, 8);
+  const skyMat = new THREE.MeshBasicMaterial({ color: 0x87ceeb, side: THREE.BackSide });
+  const sky = new THREE.Mesh(skyGeo, skyMat);
+  scene.add(sky);
+
+  // Block group
+  const blockGroup = new THREE.Group();
+  scene.add(blockGroup);
+
+  three = { scene, camera, renderer, blockGroup, sky };
+
+  resizeWorld();
+  startWorldLoop();
+
+  document.getElementById('wvLoading').style.display = 'none';
+}
+
+function resizeWorld() {
+  if (!three) return;
+  const canvas = document.getElementById('worldCanvas');
+  if (!canvas) return;
+  const w = canvas.clientWidth || 800, h = canvas.clientHeight || 600;
+  three.renderer.setSize(w, h, false);
+  three.camera.aspect = w / h;
+  three.camera.updateProjectionMatrix();
+}
+
+function startWorldLoop() {
+  if (!three) return;
+  const loop = () => {
+    renderAF = requestAnimationFrame(loop);
+    three.renderer.render(three.scene, three.camera);
+    fpsCount++;
+    const now = Date.now();
+    if (now - fpsLast > 500) {
+      fpsVal = Math.round(fpsCount * 1000 / (now - fpsLast));
+      fpsCount = 0; fpsLast = now;
+      document.getElementById('wvFps').textContent = 'FPS: ' + fpsVal;
+    }
+  };
+  loop();
+}
+
+function stopWorldLoop() {
+  if (renderAF) { cancelAnimationFrame(renderAF); renderAF = null; }
+}
+
+function rebuildWorld(data) {
+  if (!three || !data) return;
+  const { blockGroup } = three;
+
+  // Clear old meshes
+  while (blockGroup.children.length > 0) {
+    const m = blockGroup.children[0];
+    blockGroup.remove(m);
+    m.geometry?.dispose();
+    m.material?.dispose();
+  }
+
+  if (!data.blocks || !data.blocks.length) return;
+  worldBlockCount = data.blocks.length;
+  document.getElementById('wvBlocks').textContent = `Blocchi: ${worldBlockCount}`;
+
+  // Group by color
+  const byColor = new Map();
+  for (const b of data.blocks) {
+    const c = blockColor(b.n);
+    if (!byColor.has(c)) byColor.set(c, []);
+    byColor.get(c).push(b);
+  }
+
+  const geo = new THREE.BoxGeometry(1, 1, 1);
+  const mat = new THREE.Matrix4();
+
+  for (const [color, blocks] of byColor) {
+    const material = new THREE.MeshLambertMaterial({ color });
+    const mesh = new THREE.InstancedMesh(geo, material, blocks.length);
+    mesh.frustumCulled = false;
+    blocks.forEach((b, i) => {
+      // Block center = x+0.5, y+0.5, z+0.5
+      mat.setPosition(b.x + 0.5, b.y + 0.5, b.z + 0.5);
+      mesh.setMatrixAt(i, mat);
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    blockGroup.add(mesh);
+  }
+}
+
+function updateWorldCamera(pos) {
+  if (!three || !pos) return;
+  // Eye height: Minecraft entity eye = y + 1.62
+  three.camera.position.set(pos.x, pos.y + 1.62, pos.z);
+  // Minecraft yaw convention: 0=South(+Z), π/2=West(-X), π=North(-Z), -π/2=East(+X)
+  // Three.js YXZ: rotation.y=π+yaw points camera to South when yaw=0
+  // rotation.y=π+0 → faces +Z ✓
+  // rotation.x=-pitch → positive pitch (looking down) becomes negative rotation.x ✓
+  three.camera.rotation.y = Math.PI + (pos.yaw || 0);
+  three.camera.rotation.x = -(pos.pitch || 0);
+}
+
+function requestWorld() {
+  socket.emit('world:request');
+  document.getElementById('wvBlocks').textContent = 'Blocchi: ...';
+}
+
+let autoTimer = null;
+function toggleAutoWorld() {
+  autoWorld = !autoWorld;
+  const btn = document.getElementById('autoBtn');
+  btn.textContent = 'Auto: ' + (autoWorld ? 'ON' : 'OFF');
+  btn.classList.toggle('on', autoWorld);
+  if (autoWorld) {
+    requestWorld();
+    autoTimer = setInterval(() => { if (shouldRescan()) requestWorld(); }, 3000);
+  } else {
+    clearInterval(autoTimer); autoTimer = null;
+  }
+}
+
+function shouldRescan() {
+  if (!botPos || !lastWorldPos) return true;
+  const d = Math.sqrt(
+    Math.pow(botPos.x - lastWorldPos.x, 2) +
+    Math.pow(botPos.z - lastWorldPos.z, 2)
+  );
+  return d > 3;
+}
+
+// Handle resize for Three.js canvas
+new ResizeObserver(() => { if (three) resizeWorld(); }).observe(document.getElementById('worldCanvas'));
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+const socket = io({ reconnection:true, reconnectionDelay:1000 });
+let botOnline = false, uptimeStart = null, secSuspicious = 0;
+let cmdHistory = [], cmdIdx = -1;
+let botPos = null, posTrail = [], mmScaleIdx = 2;
+const mmScales = [0.5,1,2,4,8,16];
+let mmScale = mmScales[mmScaleIdx];
+let curYaw = 0, curPitch = 0;
+let sprintOn = false;
+let selSlot = null;
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+function goto(tab, el) {
+  document.querySelectorAll('.tp').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-'+tab)?.classList.add('active');
+  el?.classList.add('active');
+  closeSB();
+  if (tab === 'security')  { socket.emit('security:getlog'); secSuspicious=0; document.getElementById('secBadge').style.display='none'; }
+  if (tab === 'inventory') socket.emit('inventory:refresh');
+  if (tab === 'modules')   socket.emit('modules:getall');
+  if (tab === 'visual') {
+    worldActive = true;
+    setTimeout(() => {
+      initThree();
+      resizeWorld();
+      if (botPos) updateWorldCamera(botPos);
+      if (worldData) rebuildWorld(worldData);
+      else if (botOnline) requestWorld();
+    }, 50);
+  } else {
+    worldActive = false;
+  }
+}
+function toggleSB() { document.getElementById('sb').classList.toggle('open'); document.getElementById('ov').style.display=document.getElementById('sb').classList.contains('open')?'block':'none'; }
+function closeSB()  { document.getElementById('sb').classList.remove('open'); document.getElementById('ov').style.display='none'; }
+
+// ══════════════════════════════════════════════
+// SOCKET
+// ══════════════════════════════════════════════
+socket.on('connect', () => { socket.emit('bot:getstats'); socket.emit('security:getlog'); socket.emit('modules:getall'); });
 
 socket.on('bot:state', ({ state }) => {
   botOnline = state === 'online';
-  updateStatus(state);
+  updateSt(state);
   if (state === 'online') socket.emit('bot:getstats');
+  if (state !== 'online') { botPos = null; drawMM(); }
 });
 
-socket.on('bot:online', () => {
-  botOnline = true;
-  updateStatus('online');
-  socket.emit('bot:getstats');
-});
-
-socket.on('bot:health', ({ health, food, saturation }) => {
+socket.on('bot:health', ({ health, food, saturation } = {}) => {
   if (health == null) return;
-  document.getElementById('hpVal').textContent = health.toFixed(1);
-  document.getElementById('foodVal').textContent = food;
-  document.getElementById('hpNum').textContent = health.toFixed(1);
-  document.getElementById('foodNum').textContent = food;
-  document.getElementById('satNum').textContent = (saturation||0).toFixed(1);
-  document.getElementById('hpBar').style.width = Math.min(health*5,100)+'%';
-  document.getElementById('foodBar').style.width = Math.round((food/20)*100)+'%';
-  document.getElementById('satBar').style.width = Math.min((saturation/5)*100,100)+'%';
+  const hp = +health.toFixed(1), fo = +food, sa = +(saturation||0).toFixed(1);
+  document.getElementById('hpV').textContent = hp;
+  document.getElementById('fdV').textContent = fo;
+  document.getElementById('hpN').textContent = `${hp}/20`;
+  document.getElementById('fdN').textContent = `${fo}/20`;
+  document.getElementById('stN').textContent = sa;
+  document.getElementById('hpB').style.width = Math.min(hp*5,100)+'%';
+  document.getElementById('fdB').style.width = Math.round(fo/20*100)+'%';
+  document.getElementById('stB').style.width = Math.min(sa/5*100,100)+'%';
 });
 
-socket.on('bot:pos', ({ x, y, z, yaw, pitch }) => {
-  if (x == null) return;
-  document.getElementById('cx').textContent = x;
-  document.getElementById('cy').textContent = y;
-  document.getElementById('cz').textContent = z;
-  document.getElementById('lookInfo').textContent = `Yaw: ${yaw?.toFixed(2)} | Pitch: ${pitch?.toFixed(2)}`;
+socket.on('bot:pos', p => {
+  if (!p || p.x == null) return;
+  botPos = p;
+  document.getElementById('cx').textContent = p.x;
+  document.getElementById('cy').textContent = p.y;
+  document.getElementById('cz').textContent = p.z;
+  document.getElementById('mcoords').textContent = `X: ${p.x} | Y: ${p.y} | Z: ${p.z}`;
+  // mineflayer entity.yaw/pitch are in RADIANS
+  const yr = p.yaw||0, pr = p.pitch||0;
+  const yd = yr*180/Math.PI, pd = pr*180/Math.PI;
+  curYaw = yd; curPitch = pd;
+  document.getElementById('slY').value = Math.max(-180,Math.min(180,yd));
+  document.getElementById('slP').value = Math.max(-90,Math.min(90,pd));
+  document.getElementById('yv').textContent = yd.toFixed(1)+'°';
+  document.getElementById('pv').textContent = pd.toFixed(1)+'°';
+  document.getElementById('lookD').textContent = `Yaw:${yd.toFixed(0)}° Pitch:${pd.toFixed(0)}°`;
+  posTrail.push({x:p.x,z:p.z}); if(posTrail.length>500) posTrail.shift();
+  drawMM(); drawCompass(yr); updateDir(yd);
+  // World view camera sync
+  if (worldActive && three) {
+    updateWorldCamera(p);
+    document.getElementById('wvPos').textContent = `Pos: ${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)}`;
+  }
 });
 
-socket.on('bot:stats', (s) => {
+socket.on('bot:stats', s => {
   if (!s) return;
-  document.getElementById('statState').textContent = (s.state||'').toUpperCase();
-  document.getElementById('statRecon').textContent = s.reconnects||0;
-  document.getElementById('statMsgs').textContent = s.messagesReceived||0;
-  document.getElementById('statKicks').textContent = s.kicks||0;
-  document.getElementById('msgVal').textContent = s.messagesReceived||0;
+  document.getElementById('statSt').textContent = (s.state||'').toUpperCase();
+  document.getElementById('statRe').textContent = s.reconnects||0;
+  document.getElementById('statMs').textContent = s.messagesReceived||0;
+  document.getElementById('statKi').textContent = s.kicks||0;
+  document.getElementById('msgV').textContent = s.messagesReceived||0;
   if (s.connectedAt && s.state === 'online') uptimeStart = s.connectedAt;
 });
 
-socket.on('bot:window', (data) => {
+socket.on('bot:window', data => { if (data) renderInv(data); });
+socket.on('chat:msg', appendChat);
+socket.on('chat:sent', e => appendChat({...e, html:`<span style="color:var(--ac2)">[Tu] ${esc(e.msg||'')}</span>`}));
+socket.on('modules:update', renderModules);
+socket.on('system:log', appendSysLog);
+
+socket.on('bot:world', data => {
   if (!data) return;
-  renderInventory(data);
-});
-
-socket.on('chat:msg', (entry) => appendChat(entry));
-socket.on('chat:sent', (entry) => appendChat({ ...entry, html: `<span style="color:var(--accent2)">[Tu] ${entry.msg}</span>` }));
-
-socket.on('antiafk:status', ({ active, strategy }) => {
-  afkActive = active; afkStrategy = strategy;
-  document.getElementById('afkToggle').classList.toggle('on', active);
-  document.querySelectorAll('.strategy-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('strat-'+strategy)?.classList.add('active');
-});
-
-socket.on('security:packet', (e) => {
-  prependSecRow(e);
-  if (e.flagged || e.suspicious) { secSuspicious++; if(currentTab!=='security'){document.getElementById('secBadge').style.display='inline';document.getElementById('secBadge').textContent=secSuspicious;}}
-});
-
-socket.on('security:log', (entries) => {
-  document.getElementById('secLog').innerHTML = '';
-  (entries||[]).forEach(e => prependSecRow(e, false));
-});
-
-socket.on('security:alerts', (a) => {
-  document.getElementById('alertDanger').textContent = a.suspicious||0;
-  document.getElementById('alertUnknown').textContent = a.unknown||0;
-  document.getElementById('alertSafe').textContent = a.safe||0;
-});
-
-socket.on('system:log', (e) => appendSysLog(e));
-
-socket.on('config:data', (cfg) => {
-  if (cfg?.accounts?.length) {
-    const acc = cfg.accounts[0];
-    document.getElementById('playerAvatar').textContent = acc.avatar || acc.username[0];
-    document.getElementById('playerName').textContent = acc.label || acc.username;
+  worldData = data;
+  lastWorldPos = data.pos ? {...data.pos} : null;
+  if (worldActive && three) {
+    rebuildWorld(data);
+    if (data.pos) {
+      updateWorldCamera(data.pos);
+      const d = compassDir(data.pos.yaw*180/Math.PI);
+      document.getElementById('wvDir').textContent = `Dir: ${d}`;
+    }
+    document.getElementById('wvLoading').style.display = 'none';
   }
 });
 
-// ── UPTIME ────────────────────────────────────────────────────────
+socket.on('config:data', cfg => {
+  if (!cfg?.accounts?.length) return;
+  const acc = cfg.accounts[0];
+  document.getElementById('pname').textContent = acc.label || acc.username;
+  const pi = document.getElementById('pavImg');
+  pi.src = `https://mc-heads.net/head/${acc.username}/34`;
+  pi.onerror = () => { pi.parentElement.textContent = (acc.username[0]||'B').toUpperCase(); };
+  const bh = document.getElementById('bhead');
+  bh.src = `https://mc-heads.net/head/${acc.username}/64`; bh.style.display='';
+});
+
+socket.on('security:packet', e => {
+  if (!e) return;
+  appendSecRow(e);
+  if (e.level==='danger'||e.level==='warn'||e.flagged) {
+    secSuspicious++;
+    const ct = document.querySelector('.ni.active')?.dataset?.tab;
+    if (ct !== 'security') { const b=document.getElementById('secBadge'); b.style.display='inline'; b.textContent=secSuspicious; }
+  }
+  const ai = e.level==='danger'||e.level==='warn' ? 'aD' : e.level==='safe' ? 'aS' : 'aU';
+  document.getElementById(ai).textContent = +document.getElementById(ai).textContent + 1;
+});
+socket.on('security:log', entries => { document.getElementById('secLog').innerHTML=''; (entries||[]).forEach(e=>appendSecRow(e,false)); });
+socket.on('security:alerts', a => {
+  if (!a) return;
+  document.getElementById('aD').textContent=a.suspicious||0;
+  document.getElementById('aU').textContent=a.unknown||0;
+  document.getElementById('aS').textContent=a.safe||0;
+});
+
 setInterval(() => {
-  if (!uptimeStart || !botOnline) return;
+  if (!uptimeStart||!botOnline) return;
   const s = Math.floor((Date.now()-uptimeStart)/1000);
-  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
-  document.getElementById('uptimeVal').textContent = h>0 ? `${h}h${String(m).padStart(2,'0')}m` : `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-}, 1000);
+  const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;
+  document.getElementById('utV').textContent = h>0?`${h}h${String(m).padStart(2,'0')}m`:`${String(m).padStart(2,'0')}:${String(sc).padStart(2,'0')}`;
+},1000);
 
-// ── STATUS ────────────────────────────────────────────────────────
-function updateStatus(state) {
-  const dot = document.getElementById('dot');
-  const txt = document.getElementById('statusTxt');
-  dot.className = 'dot '+(state==='online'?'on':state==='connecting'||state==='reconnecting'?'connecting':'off');
-  txt.textContent = state.toUpperCase();
-  document.getElementById('statState').textContent = state.toUpperCase();
-  if (state === 'online') {
-    document.getElementById('playerServer').textContent = 'Connesso';
-  } else {
-    if (state === 'offline') { uptimeStart = null; document.getElementById('uptimeVal').textContent = '00:00'; }
+// ══════════════════════════════════════════════
+// STATUS
+// ══════════════════════════════════════════════
+function updateSt(state) {
+  const dot=document.getElementById('dot'), txt=document.getElementById('stxt');
+  dot.className='dot '+(state==='online'?'on':state==='connecting'||state==='reconnecting'?'co':'of');
+  txt.textContent=state.toUpperCase();
+  document.getElementById('statSt').textContent=state.toUpperCase();
+  document.getElementById('pserver').textContent=state==='online'?'Online ✓':state==='offline'?'Non connesso':state+'...';
+  if(state==='offline'){uptimeStart=null;document.getElementById('utV').textContent='00:00';}
+}
+
+// ══════════════════════════════════════════════
+// MINIMAP — yaw fix Minecraft convention
+// MC yaw (rad): 0=South(+Z), π/2=West(-X), ±π=North(-Z), -π/2=East(+X)
+// Arrow rotation on canvas: yaw + π
+//  yaw=0(S)   → π     → arrow down(south)  ✓
+//  yaw=π(N)   → 2π=0  → arrow up(north)    ✓
+//  yaw=-π/2(E)→ π/2   → arrow right(east)  ✓
+//  yaw=π/2(W) → 3π/2  → arrow left(west)   ✓
+// ══════════════════════════════════════════════
+function resetTrail() { posTrail=[]; drawMM(); }
+function mmZ(d) {
+  mmScaleIdx = Math.max(0, Math.min(mmScales.length-1, mmScaleIdx+d));
+  mmScale = mmScales[mmScaleIdx];
+  document.getElementById('mmZL').textContent = mmScale+'b/px';
+  drawMM();
+}
+
+function drawMM() {
+  const cv = document.getElementById('minimap'), ctx = cv.getContext('2d');
+  const W=cv.width, H=cv.height, cx=W/2, cy=H/2;
+  ctx.clearRect(0,0,W,H);
+  // BG
+  ctx.fillStyle='#070a0f';
+  ctx.beginPath(); ctx.roundRect(0,0,W,H,7); ctx.fill();
+  // Grid (chunk lines every 16 blocks)
+  const gPx = 16/mmScale;
+  ctx.strokeStyle='rgba(46,58,71,0.6)'; ctx.lineWidth=0.5;
+  if (botPos) {
+    const ox=(botPos.x%16)/mmScale, oz=(botPos.z%16)/mmScale;
+    const startX = ((cx-ox)%gPx+gPx)%gPx;
+    const startZ = ((cy-oz)%gPx+gPx)%gPx;
+    for (let x=startX-gPx; x<W; x+=gPx) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+    for (let y=startZ-gPx; y<H; y+=gPx) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
   }
+  // Axes
+  ctx.strokeStyle='rgba(0,212,255,0.08)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.stroke();
+  // Cardinal labels
+  ctx.fillStyle='rgba(100,120,140,.65)'; ctx.font='bold 9px monospace'; ctx.textAlign='center';
+  ctx.fillText('N',cx,11); ctx.fillText('S',cx,H-2);
+  ctx.textAlign='left'; ctx.fillText('E',4,cy+4);
+  ctx.textAlign='right'; ctx.fillText('O',W-4,cy+4);
+
+  if (!botPos) {
+    ctx.fillStyle='rgba(100,120,140,.4)'; ctx.font='9px monospace'; ctx.textAlign='center';
+    ctx.fillText('Nessuna posizione',cx,cy); return;
+  }
+  // Trail
+  if (posTrail.length>1) {
+    ctx.strokeStyle='rgba(0,212,255,0.28)'; ctx.lineWidth=1.5; ctx.lineJoin='round';
+    ctx.beginPath();
+    posTrail.forEach((p,i)=>{
+      const px=cx+(p.x-botPos.x)/mmScale, py=cy+(p.z-botPos.z)/mmScale;
+      i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+    });
+    ctx.stroke();
+  }
+  // Arrow: rotation = yaw + π (see explanation above)
+  const arrowRot = (botPos.yaw||0) + Math.PI;
+  ctx.save(); ctx.translate(cx,cy); ctx.rotate(arrowRot);
+  ctx.shadowColor='#00d4ff'; ctx.shadowBlur=8;
+  ctx.fillStyle='#00d4ff';
+  ctx.beginPath(); ctx.moveTo(0,-10); ctx.lineTo(5,5); ctx.lineTo(0,2); ctx.lineTo(-5,5); ctx.closePath(); ctx.fill();
+  ctx.shadowBlur=0; ctx.restore();
+  // Dot
+  ctx.fillStyle='#00ff88'; ctx.shadowColor='#00ff88'; ctx.shadowBlur=5;
+  ctx.beginPath(); ctx.arc(cx,cy,2.5,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
+  // Range ring
+  ctx.strokeStyle='rgba(0,212,255,0.1)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(cx,cy,50,0,Math.PI*2); ctx.stroke();
 }
 
-// ── CHAT ──────────────────────────────────────────────────────────
-function appendChat(entry) {
-  const box = document.getElementById('chatBox');
-  const ts = new Date(entry.ts||Date.now()).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const div = document.createElement('div');
-  div.className = 'chat-line';
-  div.innerHTML = `<span class="chat-time">${ts}</span>${entry.html||entry.raw||''}`;
-  box.appendChild(div);
-  box.scrollTop = box.scrollHeight;
+// ══════════════════════════════════════════════
+// COMPASS
+// ══════════════════════════════════════════════
+function drawCompass(yawRad) {
+  const cv=document.getElementById('compass'); if(!cv) return;
+  const ctx=cv.getContext('2d'), W=cv.width, H=cv.height, cx=W/2, cy=H/2, r=20;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='rgba(20,27,36,.95)';
+  ctx.beginPath(); ctx.arc(cx,cy,r+2,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='rgba(46,58,71,.8)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.arc(cx,cy,r+2,0,Math.PI*2); ctx.stroke();
+  // Same rotation formula as minimap
+  const rot = (yawRad||0) + Math.PI;
+  ctx.save(); ctx.translate(cx,cy); ctx.rotate(rot);
+  ctx.fillStyle='#ff4444';
+  ctx.beginPath(); ctx.moveTo(0,-r+2); ctx.lineTo(3,0); ctx.lineTo(-3,0); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#3a4a5a';
+  ctx.beginPath(); ctx.moveTo(0,r-2); ctx.lineTo(3,0); ctx.lineTo(-3,0); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  ctx.fillStyle='rgba(12,16,24,.9)'; ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='rgba(0,212,255,.4)'; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2); ctx.stroke();
+  ctx.fillStyle='rgba(120,140,160,.7)'; ctx.font='bold 6px monospace'; ctx.textAlign='center';
+  ctx.fillText('N',cx,cy-r+9); ctx.fillText('S',cx,cy+r-1);
+  ctx.textAlign='left'; ctx.fillText('E',cx+r-4,cy+3);
+  ctx.textAlign='right'; ctx.fillText('O',cx-r+4,cy+3);
 }
 
-let cmdHistory = [], cmdIdx = -1;
+function compassDir(yd) {
+  // MC: 0=S, 90=O, ±180=N, -90=E
+  const dirs=['S','SO','O','NO','N','NE','E','SE'];
+  return dirs[Math.round(((yd+180)%360+360)%360/45)%8];
+}
+function updateDir(yd) { document.getElementById('cdir').textContent = compassDir(yd); }
 
+drawMM(); drawCompass(0);
+
+// ══════════════════════════════════════════════
+// HEAD CONTROL
+// ══════════════════════════════════════════════
+function onYI(v) { document.getElementById('yv').textContent=(+v).toFixed(1)+'°'; curYaw=+v; }
+function onPI(v) { document.getElementById('pv').textContent=(+v).toFixed(1)+'°'; curPitch=+v; }
+let lookT = null;
+function doLook() {
+  clearTimeout(lookT);
+  lookT = setTimeout(()=>{
+    const yr = curYaw*Math.PI/180, pr = curPitch*Math.PI/180;
+    socket.emit('bot:look', { yaw:yr, pitch:pr });
+    drawCompass(yr); updateDir(curYaw);
+    if (botPos) { botPos.yaw=yr; drawMM(); }
+    if (worldActive && three) updateWorldCamera({...botPos, yaw:yr, pitch:pr});
+  }, 60);
+}
+function setLook(y,p) {
+  curYaw=y; curPitch=p;
+  document.getElementById('slY').value=y; document.getElementById('slP').value=p;
+  document.getElementById('yv').textContent=y+'°'; document.getElementById('pv').textContent=p+'°';
+  doLook();
+}
+
+// ══════════════════════════════════════════════
+// CONTROLS
+// ══════════════════════════════════════════════
+function hc(action, down) {
+  socket.emit('bot:control', { action, state: !!down });
+  const map={forward:'F',left:'L',jump:'J',right:'R',back:'B'};
+  const el=document.getElementById('db'+(map[action]||''));
+  if (el) el.classList.toggle('p', !!down);
+}
+function toggleSprint() {
+  sprintOn=!sprintOn;
+  document.getElementById('spBtn').classList.toggle('on', sprintOn);
+  socket.emit('bot:control', { action:'sprint', state:sprintOn });
+}
+
+// ══════════════════════════════════════════════
+// CHAT
+// ══════════════════════════════════════════════
+function appendChat(e) {
+  if (!e) return;
+  const box=document.getElementById('chatBox');
+  const ts=new Date(e.ts||Date.now()).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const div=document.createElement('div'); div.className='ch';
+  div.innerHTML=`<span class="ct">${ts}</span>${e.html||esc(e.raw||'')}`;
+  box.appendChild(div); box.scrollTop=box.scrollHeight;
+  while(box.children.length>500) box.removeChild(box.firstChild);
+}
 function chatKey(e) {
-  if (e.key === 'Enter') { sendChat(); return; }
-  if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    if (cmdHistory.length === 0) return;
-    cmdIdx = Math.min(cmdIdx + 1, cmdHistory.length - 1);
-    document.getElementById('chatInput').value = cmdHistory[cmdIdx];
-  }
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    cmdIdx = Math.max(cmdIdx - 1, -1);
-    document.getElementById('chatInput').value = cmdIdx >= 0 ? cmdHistory[cmdIdx] : '';
-  }
+  if(e.key==='Enter'){sendChat();return;}
+  if(e.key==='ArrowUp'){e.preventDefault();cmdIdx=Math.min(cmdIdx+1,cmdHistory.length-1);if(cmdHistory[cmdIdx])document.getElementById('chatInput').value=cmdHistory[cmdIdx];}
+  if(e.key==='ArrowDown'){e.preventDefault();cmdIdx=Math.max(cmdIdx-1,-1);document.getElementById('chatInput').value=cmdIdx>=0?cmdHistory[cmdIdx]:'';}
 }
-
 function sendChat() {
-  const input = document.getElementById('chatInput');
-  const msg = input.value.trim();
-  if (!msg) return;
-  cmdHistory.unshift(msg);
-  if (cmdHistory.length > 50) cmdHistory.pop();
-  cmdIdx = -1;
-  socket.emit('chat:send', msg);
-  input.value = '';
+  const inp=document.getElementById('chatInput'); const msg=inp.value.trim(); if(!msg)return;
+  cmdHistory.unshift(msg); if(cmdHistory.length>50)cmdHistory.pop(); cmdIdx=-1;
+  socket.emit('chat:send', msg); inp.value='';
 }
-
-function quickCmd(cmd) {
-  const input = document.getElementById('chatInput');
-  input.value = cmd;
-  input.focus();
-  input.setSelectionRange(cmd.length, cmd.length);
+function qcmd(prefix) {
+  const inp=document.getElementById('chatInput'); inp.value=prefix; inp.focus(); inp.setSelectionRange(prefix.length,prefix.length);
+  goto('chat', document.querySelector('[data-tab="chat"]'));
 }
+function sc(cmd) { socket.emit('chat:send',cmd); }
+function pc(p) { qcmd(p); }
+function sendQC() { const v=document.getElementById('qcIn').value.trim(); if(!v)return; socket.emit('chat:send',v); document.getElementById('qcIn').value=''; }
 
-// ── INVENTORY ─────────────────────────────────────────────────────
-function renderInventory({ title, slots }) {
-  document.getElementById('invTitle').textContent = title || 'Inventario';
-  const grid = document.getElementById('invGrid');
-
-  if (!slots || slots.length === 0) {
-    grid.innerHTML = '<div class="inv-empty">Nessun item nell\'inventario</div>';
-    return;
-  }
-
-  const filled = {};
-  slots.forEach(s => { filled[s.slot] = s; });
-  const maxSlot = Math.max(...slots.map(s => s.slot), 44);
-  const total = Math.max(maxSlot + 1, 45);
-
-  grid.innerHTML = '';
-  for (let i = 0; i < total; i++) {
-    const s = filled[i];
-    const div = document.createElement('div');
-    div.className = 'inv-slot' + (s ? ' filled' : '');
-    div.onclick = () => socket.emit('inventory:click', { slot: i });
-    if (s) {
-      div.innerHTML = `<div class="slot-name">${s.displayName||s.name}</div><div class="slot-count">${s.count>1?s.count:''}</div>`;
-      div.title = `${s.displayName||s.name} x${s.count} (slot ${i})`;
-    }
-    grid.appendChild(div);
-  }
-}
-
-// ── CONTROLS ──────────────────────────────────────────────────────
-function ctrl(action, duration) { socket.emit('bot:action', { action, duration }); }
-function toggleAfk() { socket.emit('antiafk:toggle', { strategy: afkStrategy }); }
-function setStrat(s) {
-  afkStrategy = s;
-  document.querySelectorAll('.strategy-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('strat-'+s)?.classList.add('active');
-  if (afkActive) socket.emit('antiafk:toggle', { strategy: s });
-}
-
-// ── SECURITY ──────────────────────────────────────────────────────
-function prependSecRow(entry, prepend=true) {
-  const body = document.getElementById('secLog');
+// ══════════════════════════════════════════════
+// INVENTORY — handle 1.21.x itemId/itemCount
+// ══════════════════════════════════════════════
+function makeSlot(item, si) {
   const div = document.createElement('div');
-  const ts = new Date(entry.ts||Date.now()).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const isSusp = entry.flagged || entry.suspicious;
-  const tagClass = isSusp ? 'tag-danger' : entry.level === 'safe' ? 'tag-safe' : 'tag-unknown';
-  const tagText = isSusp ? 'ALERT' : entry.level === 'safe' ? 'SAFE' : 'UNK';
-  div.className = 'sec-row '+(isSusp?'danger':entry.level==='safe'?'safe':'');
-  div.innerHTML = `<span class="tag ${tagClass}">${tagText}</span><span class="sec-channel">${entry.channel||'—'}</span><span class="sec-time">${ts}</span>`;
-  if (prepend && body.firstChild) body.insertBefore(div, body.firstChild);
-  else body.appendChild(div);
+  div.className = 'isl2' + (item?' fi':'');
+  if (selSlot === si) div.classList.add('sel');
+  div.title = item ? `${item.displayName||item.name} ×${item.count} [${si}]` : `Slot ${si}`;
+  div.onclick = () => {
+    selSlot=si;
+    document.querySelectorAll('.isl2').forEach(s=>s.classList.remove('sel'));
+    div.classList.add('sel');
+    document.getElementById('invInfo').textContent = item ? `Slot ${si}: ${item.displayName||item.name} ×${item.count}` : `Slot ${si}: vuoto`;
+    socket.emit('inventory:click', { slot:si });
+  };
+  if (item && item.name && item.name!=='air') {
+    div.appendChild(makeItemImg(item.name));
+    if (item.count > 1) {
+      const c=document.createElement('span'); c.className='ict'; c.textContent=item.count; div.appendChild(c);
+    }
+  }
+  return div;
 }
 
-function clearSec() { socket.emit('security:clear'); document.getElementById('secLog').innerHTML=''; }
+function renderInv(data) {
+  if (!data) return;
+  document.getElementById('invTitle').textContent = data.title||'Inventario';
+  // Build slot map, filtering air
+  const map = {};
+  (data.slots||[]).forEach(s => {
+    if (s && s.name && s.name!=='air' && (s.count||s.itemCount||0)>0) {
+      map[s.slot] = { ...s, count: s.count || s.itemCount || 1 };
+    }
+  });
+  const isCustom = data.title && data.title!=='Inventario' && data.title!=='Inventory';
 
-// ── MODULES ──────────────────────────────────────────────────────
-let modulesState = {};
-
-socket.on('modules:update', (data) => {
-  modulesState = data || {};
-  renderModules();
-});
-
-function renderModules() {
-  const grid = document.getElementById('modGrid');
-  if (!grid) return;
-  const entries = Object.entries(modulesState);
-  if (entries.length === 0) {
-    grid.innerHTML = '<div style="color:var(--text-muted);font-family:var(--font-mono);font-size:13px">Nessun modulo caricato</div>';
-    return;
+  if (isCustom) {
+    const maxS = Math.max(...Object.keys(map).map(Number).concat([26]), -1);
+    const customSlots = Math.max(maxS+1, 27);
+    document.getElementById('customS').style.display = '';
+    document.getElementById('customL').textContent = `📦 ${data.title}`;
+    const cg = document.getElementById('customG'); cg.innerHTML='';
+    for (let i=0; i<customSlots; i++) cg.appendChild(makeSlot(map[i],i));
+  } else {
+    document.getElementById('customS').style.display = 'none';
   }
 
-  grid.innerHTML = entries.map(([name, status]) => {
-    const isOn = status.enabled;
-    let extraHtml = '';
+  // Hotbar (slots 36-44)
+  const hg = document.getElementById('hotbarG'); hg.innerHTML='';
+  for (let i=0; i<9; i++) {
+    const d=makeSlot(map[36+i],36+i);
+    const n=document.createElement('span'); n.className='ihn'; n.textContent=i; d.appendChild(n);
+    hg.appendChild(d);
+  }
+  // Main (9-35)
+  const mg = document.getElementById('mainG'); mg.innerHTML='';
+  for (let i=9; i<=35; i++) mg.appendChild(makeSlot(map[i],i));
+  // Armor (5-8) + offhand (45)
+  const ag = document.getElementById('armorG'); ag.innerHTML='';
+  const am=[5,6,7,8,45], ah=['👢','🦵','🧥','⛑','🛡'];
+  am.forEach((si,i)=>{
+    const d=makeSlot(map[si],si);
+    if(!map[si]){const e=document.createElement('div');e.style.cssText='font-size:14px;opacity:.3';e.textContent=ah[i];d.appendChild(e);}
+    ag.appendChild(d);
+  });
+}
 
-    // AntiAFK: mostra selezione strategia
-    if (name === 'AntiAFK') {
-      const strats = ['look','walk','jump','combined'];
-      extraHtml = `<div style="display:flex;gap:6px;flex-wrap:wrap">` +
-        strats.map(s => `<button class="mod-btn ${status.strategy===s?'active':''}" onclick="setModuleStrategy('${s}')">${s.toUpperCase()}</button>`).join('') +
-        `</div>`;
+// ══════════════════════════════════════════════
+// MODULES
+// ══════════════════════════════════════════════
+function renderModules(data) {
+  const grid=document.getElementById('modGrid'); if(!grid) return;
+  if (!data||!Object.keys(data).length) { grid.innerHTML='<div style="color:var(--txm);font-family:var(--mono);font-size:12px">Nessun modulo caricato</div>'; return; }
+  grid.innerHTML=Object.entries(data).map(([name,st])=>{
+    const isOn=st.enabled; let extra='';
+    if(name==='AntiAFK'){
+      const ss=['look','walk','jump','combined'];
+      extra=`<div style="display:flex;gap:5px;flex-wrap:wrap">${ss.map(s=>`<button class="mb ${st.strategy===s?'active':''}" onclick="mA('AntiAFK','setStrategy','${s}')">${s.toUpperCase()}</button>`).join('')}</div>`;
     }
-
-    // AutoLogin: mostra stato
-    if (name === 'AutoLogin') {
-      extraHtml = `<div class="mod-status">Login inviato: ${status.loginSent?'✅':'⏳'} | Ha password: ${status.hasPassword?'✅':'❌'}</div>`;
-    }
-
-    return `
-      <div class="mod-card">
-        <div class="mod-card-header">
-          <span class="mod-name">${name}</span>
-          <div class="toggle ${isOn?'on':''}" onclick="toggleModule('${name}')"></div>
-        </div>
-        <div class="mod-body">
-          ${extraHtml}
-          <div class="mod-actions">
-            <button class="mod-btn ${isOn?'active':''}" onclick="toggleModule('${name}')">
-              ${isOn ? '■ Disabilita' : '▶ Abilita'}
-            </button>
-          </div>
-        </div>
+    if(name==='AutoLogin') extra=`<div class="mcs">Login: ${st.loginSent?'✅':'⏳'} · Pass: ${st.hasPassword?'✅':'❌'}</div>`;
+    if(name==='AutoSpawn') extra=`<div class="mcs">Cmd: ${st.command||'/spawn'}</div>`;
+    if(name==='WorldScanner') extra=`<div class="mcs">Ultimi blocchi: ${st.lastBlockCount||0}<br>Pos: ${st.lastPos||'—'}</div>`;
+    if(name==='ToolManager') extra=`
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <div style="display:flex;align-items:center;gap:5px"><span style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--txm);width:36px">Tool</span><input class="ti" value="${st.trackedTool||''}" placeholder="es. shovel" onchange="mA('ToolManager','setTrackedTool',this.value)"></div>
+        <div style="display:flex;align-items:center;gap:5px"><span style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--txm);width:36px">Slot</span><select class="ti" onchange="mA('ToolManager','setPreferredSlot',this.value)">${[0,1,2,3,4,5,6,7,8].map(i=>`<option${st.trackedSlot==i?' selected':''}>${i}</option>`).join('')}</select></div>
+        <div class="mcs">In mano: <b>${st.heldItem||'—'}</b></div>
+      </div>
+      <div class="mca">
+        <button class="mb" onclick="mA('ToolManager','startUsing')">▶ Usa</button>
+        <button class="mb" style="color:var(--red);border-color:rgba(255,59,59,.4)" onclick="mA('ToolManager','stopUsing')">■ Stop</button>
       </div>`;
+    return `<div class="mc"><div class="mch"><span class="mcn">${name}</span><div class="tog ${isOn?'on':''}" onclick="tM('${name}')"></div></div><div class="mcb">${extra}<div class="mca"><button class="mb ${isOn?'on':''}" onclick="tM('${name}')">${isOn?'■ Disabilita':'▶ Abilita'}</button></div></div></div>`;
   }).join('');
 }
+function tM(n){socket.emit('modules:toggle',{name:n});}
+function mA(n,a,p){socket.emit('modules:action',{name:n,action:a,params:p});}
 
-function toggleModule(name) {
-  socket.emit('modules:toggle', { name });
+// ══════════════════════════════════════════════
+// SECURITY
+// ══════════════════════════════════════════════
+function appendSecRow(e, prepend=true) {
+  if (!e) return;
+  const body=document.getElementById('secLog'), div=document.createElement('div');
+  const ts=new Date(e.ts||Date.now()).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const lv=e.level||'unknown';
+  const tc=lv==='danger'?'td':lv==='warn'?'tw':lv==='safe'?'ts':'tu';
+  const tt=lv==='danger'?'ALERT':lv==='warn'?'WARN':lv==='safe'?'SAFE':'UNK';
+  div.className=`secr ${lv==='danger'?'rd':lv==='warn'?'rw':lv==='safe'?'rs':''}`;
+  div.innerHTML=`<span class="stg ${tc}">${tt}</span><span class="sch" title="${e.channel||''}">${e.channel||'—'}</span><span class="sca">${e.category||''}</span><span class="scn">×${e.count||1}</span><span class="scs">${ts}</span>`;
+  if (prepend && body.firstChild) body.insertBefore(div,body.firstChild); else body.appendChild(div);
+  while (body.children.length>200) body.removeChild(body.lastChild);
+}
+function clearSec(){socket.emit('security:clear');document.getElementById('secLog').innerHTML='';['aD','aU','aS'].forEach(id=>document.getElementById(id).textContent='0');}
+
+// ══════════════════════════════════════════════
+// SYSLOG
+// ══════════════════════════════════════════════
+function appendSysLog(e) {
+  if (!e) return;
+  const body=document.getElementById('syslogB'), div=document.createElement('div'); div.className='sysl';
+  const ts=new Date(e.ts||Date.now()).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  div.innerHTML=`<span class="syst">${ts}</span><span class="syslv l${e.level||'i'}">${(e.level||'info').toUpperCase()}</span><span class="sysm">${esc(e.msg||'')}</span>`;
+  body.insertBefore(div,body.firstChild);
+  while(body.children.length>300)body.removeChild(body.lastChild);
 }
 
-function setModuleStrategy(strategy) {
-  socket.emit('modules:action', { name: 'AntiAFK', action: 'setStrategy', params: strategy });
-}
-
-function sendCmd(cmd) {
-  socket.emit('chat:send', cmd);
-  // Aggiungi alla chat
-  appendChat({ raw: cmd, html: `<span style="color:var(--accent)">[CMD] ${cmd}</span>`, ts: Date.now() });
-}
-
-function promptCmd(prefix) {
-  const input = document.getElementById('chatInput');
-  input.value = prefix;
-  input.focus();
-  // Vai alla tab chat
-  goto('chat');
-}
-
-// ── SYSLOG ────────────────────────────────────────────────────────
-function appendSysLog(entry) {
-  const body = document.getElementById('syslogBody');
-  const div = document.createElement('div');
-  const ts = new Date(entry.ts||Date.now()).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  div.className = 'syslog-line';
-  div.innerHTML = `<span class="syslog-ts">${ts}</span><span class="syslog-level level-${entry.level||'info'}">${(entry.level||'info').toUpperCase()}</span><span class="syslog-msg">${entry.msg||''}</span>`;
-  body.insertBefore(div, body.firstChild);
-  while (body.children.length > 300) body.removeChild(body.lastChild);
-}
+// ══════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 </script>
 </body>
 </html>

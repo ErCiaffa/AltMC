@@ -438,7 +438,7 @@ function ipcRouter(msg) {
       if (reconnTimer) { clearTimeout(reconnTimer); reconnTimer = null; }
       spawnBot();
       break;
-
+ 
     case 'disconnect':
       if (reconnTimer) { clearTimeout(reconnTimer); reconnTimer = null; }
       rawInv.detach(); rawInv.clear(); spawnDone = false;
@@ -448,45 +448,80 @@ function ipcRouter(msg) {
       ipc.send('log', { level: 'info', msg: 'Disconnesso.' });
       break;
 
+    case 'look':
+      if (bot && state==='online') { try { bot.look(+msg.data.yaw||0, +msg.data.pitch||0, false); } catch {} }
+      break;
+    case 'control':
+      if (bot && state==='online') { try { bot.setControlState(msg.data.action, !!msg.data.state); } catch {} }
+      break;
+    case 'world:request':
+      if (bot && state==='online') ModuleManager.action('WorldScanner','scanNow');
+      break;
+ 
     case 'chat':
       if (bot && state === 'online') {
         try { bot.chat(String(msg.data)); stats.messagesSent++; } catch {}
       }
       break;
-
+ 
     case 'action':
       if (bot && state === 'online') {
         try {
           const { action, duration } = msg.data;
-          bot.setControlState(action, true);
-          if (duration) setTimeout(() => { try { bot?.setControlState(action, false); } catch {} }, duration);
+          if (action === 'close_window') {
+            try {
+              if (bot.currentWindow) bot.closeWindow(bot.currentWindow);
+              else bot._client.write('close_window', { windowId: 0 });
+            } catch {}
+          } else {
+            bot.setControlState(action, true);
+            if (duration) setTimeout(() => { try { bot?.setControlState(action, false); } catch {} }, duration);
+          }
         } catch {}
       }
       break;
-
+ 
+    // NUOVO: tasto premi/rilascia
+    case 'control':
+      if (bot && state === 'online') {
+        try {
+          const { action, state: ctrlState } = msg.data;
+          bot.setControlState(String(action), !!ctrlState);
+        } catch {}
+      }
+      break;
+ 
+    // NUOVO: sguardo bot (yaw/pitch in radianti)
+    case 'look':
+      if (bot && state === 'online') {
+        try {
+          bot.look(parseFloat(msg.data.yaw) || 0, parseFloat(msg.data.pitch) || 0, false);
+        } catch {}
+      }
+      break;
+ 
     case 'module:toggle':
       const status = ModuleManager.toggle(msg.data.name, msg.data.value);
       if (status) ipc.send('modules', ModuleManager.getAllStatus());
       break;
-
+ 
     case 'module:action':
       ModuleManager.action(msg.data.name, msg.data.action, msg.data.params);
       ipc.send('modules', ModuleManager.getAllStatus());
       break;
-
+ 
     case 'module:command':
-      // Comando diretto (es. /spawn, /tpa, ecc.)
       if (bot && state === 'online' && msg.data.command) {
         try { bot.chat(msg.data.command); } catch {}
       }
       break;
-
+ 
     case 'inventory:click':
       if (bot && state === 'online') {
-        try { bot.clickWindow(msg.data.slot, 0, 0).catch(()=>{}); } catch {}
+        try { bot.clickWindow(msg.data.slot, 0, 0).catch(() => {}); } catch {}
       }
       break;
-
+ 
     case 'getstats':
       ipc.send('stats', getStats());
       ipc.send('modules', ModuleManager.getAllStatus());
@@ -500,14 +535,26 @@ function ipcRouter(msg) {
         } catch {}
       }
       break;
-      
+ 
     case 'getinventory':
       if (state === 'online' && bot) {
-        ipc.send('window', useRawInv ? rawInv.getInventory() : getBotInventory());
+        // Forza refresh inventario
+        try {
+          const inv = useRawInv ? rawInv.getInventory() : getBotInventory();
+          // Pulisci slot "air" e duplicati
+          if (inv.slots) {
+            inv.slots = inv.slots.filter(s => s && s.name && s.name !== 'air');
+          }
+          ipc.send('window', inv);
+        } catch {
+          ipc.send('window', { title: 'Inventario', slots: [] });
+        }
       }
       break;
   }
 }
+ 
+module.exports = { ipcRouter };
 
 ipc.connect();
 console.log('[BOT PROCESS] Avviato');
