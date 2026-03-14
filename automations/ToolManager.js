@@ -13,6 +13,7 @@ class ToolManager extends BaseModule {
     this.checkInterval = null;
     this.lastHeld = null;
     this.usingItem = false;
+    this._equipping = false;
   }
 
   onEnable() {
@@ -33,13 +34,14 @@ class ToolManager extends BaseModule {
 
   // Imposta lo strumento da tracciare (es. 'diamond_shovel', 'iron_pickaxe')
   setTrackedTool(toolName) {
-    this.trackedTool = toolName;
+    this.trackedTool = (toolName || '').trim().toLowerCase() || null;
     this.log('info', `Strumento tracciato: ${toolName || 'nessuno'}`);
   }
 
   // Imposta lo slot da preferire (0-8)
   setPreferredSlot(slot) {
-    this.trackedSlot = parseInt(slot) || 0;
+    const parsed = Number.parseInt(slot, 10);
+    this.trackedSlot = Number.isInteger(parsed) ? Math.max(0, Math.min(8, parsed)) : 0;
     this.log('info', `Slot preferito: ${this.trackedSlot}`);
   }
 
@@ -84,43 +86,45 @@ class ToolManager extends BaseModule {
   }
 
   _findAndEquip() {
-    if (!this.bot) return;
+    if (!this.bot || this._equipping) return;
+    this._equipping = true;
     try {
       const items = this.bot.inventory.items();
       const match = items.find(i => i.name.includes(this.trackedTool));
       if (!match) {
         this.log('warn', `Nessun "${this.trackedTool}" trovato nell'inventario`);
+        this._equipping = false;
         return;
       }
 
+      const equipDirect = () => this.bot.equip(match, 'hand')
+        .then(() => {
+          this.log('success', `Re-equipaggiato: ${match.name}`);
+          this.lastHeld = match.name;
+        });
+
       // Equipaggia nello slot preferito o in mano
-      if (this.trackedSlot !== null) {
-        const hotbarSlot = this.trackedSlot + 36; // Slot hotbar offset
-        this.bot.inventory.move(match.slot, hotbarSlot, match.count)
-          .then(() => {
-            this.bot.setQuickBarSlot(this.trackedSlot);
-            this.log('success', `Re-equipaggiato: ${match.name} → slot ${this.trackedSlot}`);
-            this.lastHeld = match.name;
-          })
-          .catch(() => {
-            // Fallback: usa equip diretto
-            this.bot.equip(match, 'hand')
-              .then(() => {
-                this.log('success', `Re-equipaggiato (fallback): ${match.name}`);
-                this.lastHeld = match.name;
-              })
-              .catch(e => this.log('error', `Equip fallito: ${e.message}`));
-          });
-      } else {
-        this.bot.equip(match, 'hand')
-          .then(() => {
-            this.log('success', `Re-equipaggiato: ${match.name}`);
-            this.lastHeld = match.name;
-          })
-          .catch(e => this.log('error', `Equip fallito: ${e.message}`));
-      }
+      const hotbarSlot = this.trackedSlot + 36; // Slot hotbar offset (inventory window)
+      const selectPreferred = () => {
+        this.bot.setQuickBarSlot(this.trackedSlot);
+        this.lastHeld = match.name;
+        this.log('success', `Re-equipaggiato: ${match.name} → slot ${this.trackedSlot}`);
+      };
+
+      Promise.resolve()
+        .then(() => {
+          if (match.slot === hotbarSlot) {
+            selectPreferred();
+            return;
+          }
+          return this.bot.moveSlotItem(match.slot, hotbarSlot).then(selectPreferred);
+        })
+        .catch(() => equipDirect())
+        .catch((e) => this.log('error', `Equip fallito: ${e.message}`))
+        .finally(() => { this._equipping = false; });
     } catch (e) {
       this.log('error', `Errore gestione strumento: ${e.message}`);
+      this._equipping = false;
     }
   }
 

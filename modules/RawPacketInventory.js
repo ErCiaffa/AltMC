@@ -309,7 +309,6 @@ class RawPacketInventory extends EventEmitter {
   _onWindowItemsParsed(data) {
     if (!data) return;
     const items = data.items || data.slots || [];
-    if (!items.length) return;
 
     const slots = [];
     for (let i = 0; i < items.length; i++) {
@@ -321,10 +320,10 @@ class RawPacketInventory extends EventEmitter {
       if (count <= 0) continue;
 
       // KEY: use itemId (1.21.x), fallback to type (older), then blockId
-      const itemId = item.itemId ?? item.type ?? item.blockId ?? null;
+      const itemId = item.itemId ?? item.type ?? item.blockId ?? item.id ?? null;
       if (!itemId || itemId <= 0) continue;
 
-      const name = item.name || this.registry.getName(itemId);
+      const name = item.name || item.displayName || this.registry.getName(itemId);
       if (!name || name === 'air') continue;
 
       slots.push({ slot: i, itemId, count, name, displayName: this._fmt(name) });
@@ -345,13 +344,13 @@ class RawPacketInventory extends EventEmitter {
     const item = data.item || data.slotData;
     // KEY: use itemCount, not count
     const count = item?.itemCount ?? item?.count ?? 0;
-    const itemId = item?.itemId ?? item?.type ?? item?.blockId ?? null;
+    const itemId = item?.itemId ?? item?.type ?? item?.blockId ?? item?.id ?? null;
 
     // Remove existing entry for this slot
     this.slots = this.slots.filter(s => s.slot !== slotIndex);
 
     if (count > 0 && itemId && itemId > 0) {
-      const name = item?.name || this.registry.getName(itemId);
+      const name = item?.name || item?.displayName || this.registry.getName(itemId);
       if (name && name !== 'air') {
         this.slots.push({ slot: slotIndex, itemId, count, name, displayName: this._fmt(name) });
         this.slots.sort((a, b) => a.slot - b.slot);
