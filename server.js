@@ -283,6 +283,14 @@ io.on('connection', (socket) => {
     sendToBot('look', { yaw, pitch });
   });
 
+  socket.on('bot:useitem', ({ state: st } = {}) => {
+    sendToBot('use_item', { state: st !== false });
+  });
+
+  socket.on('bot:swingarm', () => {
+    sendToBot('swing_arm', {});
+  });
+
   socket.on('bot:getstats', () => {
     socket.emit('bot:stats', state.stats);
     if (state.health) socket.emit('bot:health', state.health);
@@ -304,7 +312,7 @@ io.on('connection', (socket) => {
   });
 
   // Inventory
-  socket.on('inventory:refresh', () => { sendToBot('getinventory',{}); socket.emit('bot:window',state.inventory); });
+  socket.on('inventory:refresh', () => { sendToBot('getinventory',{}); });
   socket.on('inventory:close',   () => sendToBot('action',{action:'close_window'}));
   socket.on('inventory:click',   (data) => { sendToBot('inventory:click',{slot:data?.slot??data}); });
 
