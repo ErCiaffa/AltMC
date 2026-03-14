@@ -58,7 +58,7 @@
     .wt{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--txm);}
     .wb{padding:12px;}
     /* MONITOR */
-    .mg{display:grid;grid-template-columns:260px 1fr 210px;gap:11px;padding:13px;}
+    .mg{display:grid;grid-template-columns:minmax(250px,300px) minmax(0,1fr) minmax(210px,260px);gap:11px;padding:13px;align-items:start;}
     .sr{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;grid-column:1/-1;}
     .sc2{background:var(--s1);border:1px solid var(--b1);border-radius:9px;padding:11px 13px;display:flex;align-items:center;gap:9px;}
     .si{font-size:20px;}
@@ -203,6 +203,10 @@
     .le,.ld{background:rgba(255,59,59,.1);color:var(--red);}
     .sysm{color:var(--tx);word-break:break-all;line-height:1.5;}
     /* MOBILE */
+    @media(max-width:1180px){
+      .mg{grid-template-columns:1fr 1fr;}
+      .mg>div:last-child{grid-column:1/-1;}
+    }
     @media(max-width:768px){
       .app{grid-template-columns:1fr;grid-template-areas:"hd""mn";}
       aside{position:fixed;top:0;left:0;bottom:0;width:240px;transform:translateX(-100%);z-index:25;padding-top:var(--sh);}
@@ -683,14 +687,14 @@ function rebuildWorld(data) {
 
 function updateWorldCamera(pos) {
   if (!three || !pos) return;
-  // Eye height: Minecraft entity eye = y + 1.62
-  three.camera.position.set(pos.x, pos.y + 1.62, pos.z);
-  // Minecraft yaw convention: 0=South(+Z), π/2=West(-X), π=North(-Z), -π/2=East(+X)
-  // Three.js YXZ: rotation.y=π+yaw points camera to South when yaw=0
-  // rotation.y=π+0 → faces +Z ✓
-  // rotation.x=-pitch → positive pitch (looking down) becomes negative rotation.x ✓
-  three.camera.rotation.y = Math.PI + (pos.yaw || 0);
-  three.camera.rotation.x = -(pos.pitch || 0);
+  const yaw = pos.yaw || 0;
+  const pitch = pos.pitch || 0;
+  const eyeY = (pos.y || 0) + 1.62;
+  const dir = lookVector(yaw, pitch);
+  const fwd = 0.18; // tiny offset to avoid clipping the bot head/model in first-person view
+
+  three.camera.position.set(pos.x + dir.x * fwd, eyeY + dir.y * fwd, pos.z + dir.z * fwd);
+  three.camera.lookAt(pos.x + dir.x * 4, eyeY + dir.y * 4, pos.z + dir.z * 4);
 }
 
 function requestWorld() {
@@ -807,7 +811,7 @@ socket.on('bot:pos', p => {
   document.getElementById('pv').textContent = pd.toFixed(1)+'°';
   document.getElementById('lookD').textContent = `Yaw:${yd.toFixed(0)}° Pitch:${pd.toFixed(0)}°`;
   posTrail.push({x:p.x,z:p.z}); if(posTrail.length>500) posTrail.shift();
-  drawMM(); drawCompass(yr); updateDir(yd);
+  drawMM(); drawCompass(yr); updateDir(yr);
   // World view camera sync
   if (worldActive && three) {
     updateWorldCamera(p);
@@ -839,7 +843,7 @@ socket.on('bot:world', data => {
     rebuildWorld(data);
     if (data.pos) {
       updateWorldCamera(data.pos);
-      const d = compassDir(data.pos.yaw*180/Math.PI);
+      const d = compassDir(data.pos.yaw || 0);
       document.getElementById('wvDir').textContent = `Dir: ${d}`;
     }
     document.getElementById('wvLoading').style.display = 'none';
@@ -896,14 +900,22 @@ function updateSt(state) {
 }
 
 // ══════════════════════════════════════════════
-// MINIMAP — yaw fix Minecraft convention
-// MC yaw (rad): 0=South(+Z), π/2=West(-X), ±π=North(-Z), -π/2=East(+X)
-// Arrow rotation on canvas: yaw + π
-//  yaw=0(S)   → π     → arrow down(south)  ✓
-//  yaw=π(N)   → 2π=0  → arrow up(north)    ✓
-//  yaw=-π/2(E)→ π/2   → arrow right(east)  ✓
-//  yaw=π/2(W) → 3π/2  → arrow left(west)   ✓
+// MINIMAP / RADAR HELPERS
 // ══════════════════════════════════════════════
+function lookVector(yawRad=0, pitchRad=0) {
+  const cp = Math.cos(pitchRad || 0);
+  return {
+    x: -Math.sin(yawRad || 0) * cp,
+    y: Math.sin(pitchRad || 0),
+    z: -Math.cos(yawRad || 0) * cp
+  };
+}
+
+function radarAngleFromYaw(yawRad=0) {
+  const v = lookVector(yawRad, 0);
+  return Math.atan2(v.x, -v.z);
+}
+
 function resetTrail() { posTrail=[]; drawMM(); }
 function mmZ(d) {
   mmScaleIdx = Math.max(0, Math.min(mmScales.length-1, mmScaleIdx+d));
@@ -936,8 +948,8 @@ function drawMM() {
   // Cardinal labels
   ctx.fillStyle='rgba(100,120,140,.65)'; ctx.font='bold 9px monospace'; ctx.textAlign='center';
   ctx.fillText('N',cx,11); ctx.fillText('S',cx,H-2);
-  ctx.textAlign='left'; ctx.fillText('E',4,cy+4);
-  ctx.textAlign='right'; ctx.fillText('O',W-4,cy+4);
+  ctx.textAlign='center'; ctx.fillText('O',10,cy+4);
+  ctx.fillText('E',W-10,cy+4);
 
   if (!botPos) {
     ctx.fillStyle='rgba(100,120,140,.4)'; ctx.font='9px monospace'; ctx.textAlign='center';
@@ -954,7 +966,7 @@ function drawMM() {
     ctx.stroke();
   }
   // Arrow: rotation = yaw + π (see explanation above)
-  const arrowRot = (botPos.yaw||0) + Math.PI;
+  const arrowRot = radarAngleFromYaw(botPos.yaw||0);
   ctx.save(); ctx.translate(cx,cy); ctx.rotate(arrowRot);
   ctx.shadowColor='#00d4ff'; ctx.shadowBlur=8;
   ctx.fillStyle='#00d4ff';
@@ -980,7 +992,7 @@ function drawCompass(yawRad) {
   ctx.strokeStyle='rgba(46,58,71,.8)'; ctx.lineWidth=1;
   ctx.beginPath(); ctx.arc(cx,cy,r+2,0,Math.PI*2); ctx.stroke();
   // Same rotation formula as minimap
-  const rot = (yawRad||0) + Math.PI;
+  const rot = radarAngleFromYaw(yawRad||0);
   ctx.save(); ctx.translate(cx,cy); ctx.rotate(rot);
   ctx.fillStyle='#ff4444';
   ctx.beginPath(); ctx.moveTo(0,-r+2); ctx.lineTo(3,0); ctx.lineTo(-3,0); ctx.closePath(); ctx.fill();
@@ -995,12 +1007,12 @@ function drawCompass(yawRad) {
   ctx.textAlign='right'; ctx.fillText('O',cx-r+4,cy+3);
 }
 
-function compassDir(yd) {
-  // MC: 0=S, 90=O, ±180=N, -90=E
-  const dirs=['S','SO','O','NO','N','NE','E','SE'];
-  return dirs[Math.round(((yd+180)%360+360)%360/45)%8];
+function compassDir(yawRad) {
+  const deg = (radarAngleFromYaw(yawRad) * 180 / Math.PI + 360) % 360;
+  const dirs = ['N','NE','E','SE','S','SO','O','NO'];
+  return dirs[Math.round(deg / 45) % 8];
 }
-function updateDir(yd) { document.getElementById('cdir').textContent = compassDir(yd); }
+function updateDir(yawRad) { document.getElementById('cdir').textContent = compassDir(yawRad); }
 
 drawMM(); drawCompass(0);
 
@@ -1015,7 +1027,7 @@ function doLook() {
   lookT = setTimeout(()=>{
     const yr = curYaw*Math.PI/180, pr = curPitch*Math.PI/180;
     socket.emit('bot:look', { yaw:yr, pitch:pr });
-    drawCompass(yr); updateDir(curYaw);
+    drawCompass(yr); updateDir(yr);
     if (botPos) { botPos.yaw=yr; drawMM(); }
     if (worldActive && three) updateWorldCamera({...botPos, yaw:yr, pitch:pr});
   }, 60);
@@ -1102,9 +1114,12 @@ function renderInv(data) {
   // Build slot map, filtering air
   const map = {};
   (data.slots||[]).forEach(s => {
-    if (s && s.name && s.name!=='air' && (s.count||s.itemCount||0)>0) {
-      map[s.slot] = { ...s, count: s.count || s.itemCount || 1 };
-    }
+    const count = Number(s?.count ?? s?.itemCount ?? 0);
+    const slot = Number(s?.slot);
+    if (Number.isNaN(slot) || count <= 0) return;
+    const name = s?.name || (s?.itemId ? `item_${s.itemId}` : null);
+    if (!name || name === 'air') return;
+    map[slot] = { ...s, slot, name, count };
   });
   const isCustom = data.title && data.title!=='Inventario' && data.title!=='Inventory';
 
