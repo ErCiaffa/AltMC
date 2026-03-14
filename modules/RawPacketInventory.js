@@ -303,12 +303,22 @@ class RawPacketInventory extends EventEmitter {
     this.windowId = windowId.value;
     this.windowTitle = title.value || 'Inventario';
     this.slots = [];
+    this._lastStateId = -1;
     this.emit('windowOpen', this.windowTitle);
+    this.emit('update', this.getInventory());
   }
 
   // ── KEY FIX: _onWindowItemsParsed handles itemId/itemCount correctly ──
   _onWindowItemsParsed(data) {
     if (!data) return;
+
+    const incomingWindowId = Number(data.windowId ?? this.windowId ?? 0);
+    if (Number.isFinite(incomingWindowId) && incomingWindowId !== this.windowId) {
+      this.windowId = incomingWindowId;
+      this._lastStateId = -1;
+      this.slots = [];
+    }
+
     const stateId = Number(data.stateId ?? -1);
     if (stateId >= 0 && stateId < this._lastStateId) return;
     if (stateId >= 0) this._lastStateId = stateId;
@@ -373,7 +383,9 @@ class RawPacketInventory extends EventEmitter {
     this.windowId = data.windowId ?? 0;
     this.windowTitle = this._extractTitle(data);
     this.slots = [];
+    this._lastStateId = -1;
     this.emit('windowOpen', this.windowTitle);
+    this.emit('update', this.getInventory());
   }
 
   _onCloseWindow() {
@@ -406,6 +418,9 @@ class RawPacketInventory extends EventEmitter {
     try {
       const t = data.windowTitle || data.title || data.name || 'Inventario';
       if (typeof t === 'string') { try { return JSON.parse(t)?.text || t; } catch { return t; } }
+      if (t?.type === 'string' && typeof t?.value === 'string') return t.value;
+      if (typeof t?.value === 'string') return t.value;
+      if (t?.value?.text) return t.value.text;
       return t?.text || t?.translate || 'Inventario';
     } catch { return 'Inventario'; }
   }

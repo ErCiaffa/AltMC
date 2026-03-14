@@ -76,6 +76,7 @@
     /* MINIMAP */
     .mm-wrap{display:flex;flex-direction:column;align-items:center;gap:7px;padding:10px;}
     #minimap{border-radius:7px;border:1px solid var(--b2);display:block;}
+    .radar-card{min-width:220px;}
     .mcb{padding:3px 8px;font-family:var(--mono);font-size:10px;background:var(--s3);border:1px solid var(--b2);border-radius:4px;cursor:pointer;color:var(--txm);transition:.15s;}
     .mcb:hover{color:var(--tx);border-color:var(--ac);}
     /* BOT VISUAL */
@@ -88,6 +89,8 @@
     .hc{display:flex;flex-direction:column;gap:7px;}
     .sr2{display:flex;align-items:center;gap:7px;}
     .sr2 label{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--txm);width:34px;flex-shrink:0;}
+    .mc-center .sr2{gap:9px;}
+    .mc-center .sr2 input[type=range]{min-width:260px;}
     input[type=range]{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--s3);outline:none;cursor:pointer;}
     input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--ac);cursor:pointer;box-shadow:0 0 6px rgba(0,212,255,.4);}
     .sv{font-family:var(--mono);font-size:10px;color:var(--ac);width:36px;text-align:right;flex-shrink:0;}
@@ -307,7 +310,7 @@
     </div>
   </div>
   <!-- CENTER: bot + sliders -->
-  <div style="display:flex;flex-direction:column;gap:11px">
+  <div class="mc-center" style="display:flex;flex-direction:column;gap:11px">
     <div class="w">
       <div class="wh">
         <span class="wt">🤖 Bot / Sguardo</span>
@@ -350,7 +353,7 @@
     </div>
   </div>
   <!-- RIGHT: minimap -->
-  <div class="w" style="grid-row:2/4">
+  <div class="w radar-card">
     <div class="wh">
       <span class="wt">🗺 Radar</span>
       <div style="display:flex;gap:4px;align-items:center">
